@@ -1,0 +1,132 @@
+<html>
+
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+<script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+<script src="jquery-csv.js"></script>
+<script src="data.csv"></script>
+<script>
+  data_arrays = $.csv.toArrays(datastring);
+</script>
+
+
+<script>
+google.charts.load('current', {packages: ['corechart']});
+google.charts.setOnLoadCallback(go);
+
+options = {
+    animation: {
+        duration: 5000,
+        easing: 'out'
+    }
+};
+
+function go()
+{
+  fr_vs_le_chart = new google.visualization.BubbleChart(document.getElementById('FR_vs_LE'));
+  google.visualization.events.addListener(fr_vs_le_chart, 'animationfinish', drawFRvsLE)
+
+  year_index = 1;
+
+  all_years = data_arrays[0]
+  all_years = all_years.map(function(current_value, index, array){return current_value.split(" ")[0]})
+
+  drawFRvsLE();
+  drawOther();
+}
+
+function drawFRvsLE()
+{
+  if (year_index >= all_years.length-4)
+    return
+
+  year_index += 1
+
+  document.getElementById('year').innerHTML = all_years[year_index]
+
+  array_for_google = [ [ 'ID', 'Life Expectancy', 'Fertility Rate', 'Country' ],
+                       [ 'MNG', Number(data_arrays[3][4+year_index]), Number(data_arrays[2][4+year_index]), 'Mongolia' ],
+                       [ 'TZA', Number(data_arrays[7][4+year_index]), Number(data_arrays[6][4+year_index]), 'Tanzania' ] ]
+  var options = {
+                  title: 'Fertility Rate vs Life Expectancy',
+                  hAxis: {title: 'Life Expectancy'},
+                  vAxis: {title: 'Fertility Rate'},
+                  bubble: {textStyle: {fontSize: 11}},
+                  animation: {
+                               duration: 500,
+                               easing: 'out',
+                               startup: true
+                             },
+                  hAxis: {
+                           title: 'Life Expectancy',
+                           minValue: 40,
+                           maxValue: 75,
+                           viewWindowMode: 'explicit',
+                           viewWindow: {
+                                         min: 40,
+                                         max: 75
+                                       },
+                         },
+                  vAxis: {
+                           title: 'Fertility Rate',
+                           minValue: 1,
+                           maxValue: 8,
+                           viewWindowMode: 'explicit',
+                           viewWindow: {
+                                         max: 1,
+                                         min: 8
+                                       },
+                         }
+                };
+
+
+  fr_vs_le_chart.draw(google.visualization.arrayToDataTable(array_for_google), options);
+}
+
+function drawOther()
+{
+  array_for_google = [ [ {label:'Year', id:'year'}, {label:'Mongolia CELL', id:'mngcell'}, {label:'Tanzania CELL', id:'tzacell'} ] ]
+
+  years = data_arrays[0].slice(44, -1)
+
+  // Massage the headers a bit to cut them down to just the number of the year
+  years = years.map(function(current_value, index, array){return current_value.split(" ")[0]})
+
+  // Loop over the years and build the rows
+  for (i=0; i<years.length; i++)
+  {
+    current_row = [years[i]]
+
+    // Mongolia Cell
+    current_row.push(Number(data_arrays[4][i+44]))
+
+    // Tanzania Cell
+    current_row.push(Number(data_arrays[8][i+44]))
+
+    array_for_google.push(current_row)
+  }
+
+  var dataTable = google.visualization.arrayToDataTable(array_for_google);
+  var view = document.getElementById('chart_other');
+  chart = new google.visualization.ColumnChart(view);
+  chart.draw(dataTable,options);
+}
+</script>
+
+<head>
+</head>
+
+<body>
+  <h1>Derek Gaston</h1>
+  <h2>
+    Year: <span id='year'></span>
+  </h2>
+  <h2>
+    <div id='FR_vs_LE'/>
+  </h2>
+  <h2>
+    <div id='chart_other'/>
+  </h2>
+
+</body>
+</html>

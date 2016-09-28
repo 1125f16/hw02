@@ -1,0 +1,19 @@
+Name: Ahmed Alawaji
+Email: alawaji@mit.edu
+
+The code was done as a result of a lesson in a book called "Design D3.js charts by example" . 
+
+1. Data: 
+
+Data Choice: My initial data choices were China and Qatar but the data comparison between both countries was not very impressive.
+
+Data Source: The data source is a CSV file downloaded from the World Bank. I uploaded the file online to increase accessibility of the data.
+
+2. Code:
+
+Animation: Both charts were animated, In fact, I used the same code for both data points.
+
+D3.js Chart Library: I used d3 library because it's bubble charts filtering in Google Charts cannot filter data elements based on year. 
+
+Thanks for your efforts!
+

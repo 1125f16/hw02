@@ -1,0 +1,267 @@
+<html>
+
+<!-- 1.125 - Fall 2016 - PSet 2 -->
+<!-- John Tramm -->
+
+<!-- Countries: Sweden & Norway -->
+
+<head>
+
+	<!-- Load pre-processed data stored in arrays from the country_data.js file -->
+	<script src="country_data.js"></script>
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+	<script type="text/javascript">
+
+		// Load Google Javascript Packages
+		google.charts.load('current', {'packages':['corechart']});
+		google.charts.setOnLoadCallback(drawChart);
+
+		// Function that will create all of the plots
+		function drawChart() {
+
+			/////////////////////////////////////////////////////////
+			// Make Fertility vs Life Plot /////////////////////////
+			/////////////////////////////////////////////////////////
+
+			// Organize data into plotting tables ///////////////////
+
+			// Sweden
+			var sweden_fertility_vs_life = new Array(sweden_years.length);
+			for (i = 0; i < sweden_years.length; i++)
+				sweden_fertility_vs_life[i] = new Array(2);
+			for (i = 0; i < sweden_years.length; i++)
+			{
+				sweden_fertility_vs_life[i][1] = sweden_fertility[i];
+				sweden_fertility_vs_life[i][0] = sweden_life[i];
+			}
+
+			// Norway
+			var norway_fertility_vs_life = new Array(norway_years.length);
+			for (i = 0; i < norway_years.length; i++)
+				norway_fertility_vs_life[i] = new Array(2);
+			for (i = 0; i < norway_years.length; i++)
+			{
+				norway_fertility_vs_life[i][1] = norway_fertility[i];
+				norway_fertility_vs_life[i][0] = norway_life[i];
+			}
+
+			// Create 1 row animated data table for Sweden
+			var adata = new google.visualization.DataTable();
+			adata.addColumn('string', 'ID');
+			adata.addColumn('number', 'Life Expectancy (years)');
+			adata.addColumn('number', 'Fertility Rate (births per woman)');
+			adata.addColumn('string', 'Country');
+			var entry = ["SWE", sweden_fertility_vs_life[0][0], sweden_fertility_vs_life[0][1], "Sweden"];
+			adata.addRow(entry);
+			entry = ["NOR", norway_fertility_vs_life[0][0], norway_fertility_vs_life[0][1], "Norway"];
+			adata.addRow(entry);
+
+			// Specify options
+			anim_options = {
+				title: 'Fertility Rate vs. Life Expectancy',
+				vAxis: {title: 'Fertility Rate (births per woman)', maxValue:3, minValue:1},
+				hAxis: {title: 'Life Expectancy (years)', maxValue: 90, minValue:60},
+				animation:{
+					"startup": true,
+					enableInteractivity: false,
+					duration: 1000,
+					easing: 'in',
+				},
+			};
+
+			// Create Chart
+			var asweden_fvl_chart = new google.visualization.BubbleChart(document.getElementById('anim_swe_fvl'));
+			
+			// Add listener to load next data point after each year completes animating
+			google.visualization.events.addListener(asweden_fvl_chart, 'animationfinish', animate);
+
+			// Draw first year of chart (1960)
+			asweden_fvl_chart.draw(adata, anim_options);
+
+			// Global variable to count number of times chart has been animated
+			var anim_count = 0;
+
+			// Animation function, called after each animation completes
+			function animate()
+			{
+				// Update Year
+				var year = anim_count +1960;
+				var title_string = year + ' Fertility Rate vs. Life Expectancy';
+
+				anim_options =
+				{
+					title: title_string,
+					vAxis: {title: 'Fertility Rate (births per woman)', maxValue:3, minValue:1},
+					hAxis: {title: 'Life Expectancy (years)', maxValue:90, minValue:60},
+					animation:{
+						"startup": true,
+						enableInteractivity: false,
+						duration: 1000,
+						easing: 'in',
+					},
+				};
+
+				// Only animate through 2014, then stop
+				if( anim_count < sweden_fertility_vs_life.length)
+				{
+					// Update data table
+					adata.setValue(0, 1, sweden_fertility_vs_life[anim_count][0]);
+					adata.setValue(0, 2, sweden_fertility_vs_life[anim_count][1]);
+					adata.setValue(1, 1, norway_fertility_vs_life[anim_count][0]);
+					adata.setValue(1, 2, norway_fertility_vs_life[anim_count][1]);
+					// Increment times animated (i.e., year)
+					anim_count++;
+					// Re-draw table w/ animation
+					asweden_fvl_chart.draw(adata, anim_options);
+				}
+			}
+
+			/////////////////////////////////////////////////////////
+			// Make Income vs Life Plot  ////////////////////////////
+			/////////////////////////////////////////////////////////
+
+			// Figure out how many years have null data fields to avoid plotting them
+			var nonzero = 0;
+			for(i = 0; i < sweden_years.length; i++)
+			{
+				if(sweden_income[i] !== 0)
+					nonzero++;
+			}
+
+			// Organize data into plotting tables ///////////////////
+
+			// Sweden
+			var sweden_income_vs_life = new Array(nonzero);
+			for (i = 0; i < sweden_years.length; i++)
+				sweden_income_vs_life[i] = new Array(2);
+			var idx = 0;
+			for (i = 0; i < sweden_years.length; i++)
+			{
+				if(sweden_income[i] !== 0)
+				{
+					sweden_income_vs_life[idx][1] = sweden_income[i];
+					sweden_income_vs_life[idx][0] = sweden_life[i];
+					idx++;
+				}
+			}
+
+			// Norway
+			var norway_income_vs_life = new Array(nonzero);
+			for (i = 0; i < norway_years.length; i++)
+				norway_income_vs_life[i] = new Array(2);
+			idx = 0;
+			for (i = 0; i < norway_years.length; i++)
+			{
+				if(norway_income[i] !== 0)
+				{
+					norway_income_vs_life[idx][1] = norway_income[i];
+					norway_income_vs_life[idx][0] = norway_life[i];
+					idx++;
+				}
+			}
+
+			// Create the data tables ///////////////////////////////
+
+			// Sweden
+			var data2 = new google.visualization.DataTable();
+
+			data2.addColumn('string', 'ID');
+			data2.addColumn('number', 'Life Expectancy (years)');
+			data2.addColumn('number', 'Income');
+			data2.addColumn('string', 'country');
+			var swe_data2 = ["SWE", sweden_income_vs_life[0][0], sweden_income_vs_life[0][1], "Sweden"];
+			data2.addRow(swe_data2);
+			var nor_data2 = ["NOR", norway_income_vs_life[0][0], norway_income_vs_life[0][1], "Norway"];
+			data2.addRow(nor_data2);
+
+			// Specify Options /////////////////////////////////////////////
+
+			// Norway
+			var options2 = {
+				title: 'Income per Person (USD) vs. Life Expectancy',
+				vAxis: {title: 'Income per Person (USD)', maxValue:100000, minValue:0},
+				hAxis: {title: 'Life Expectancy (years)', maxValue:90, minValue:60},
+				animation:{
+					"startup": true,
+					duration: 1000,
+					easing: 'in',
+				},
+			};
+
+			// Draw Income vs. Life Carts ///////////////////////////////
+
+			// Draw
+			var ivl_chart = new google.visualization.BubbleChart(document.getElementById('income_vs_life'));
+
+			// Add listener to load next data point after each year completes animating
+			google.visualization.events.addListener(ivl_chart, 'animationfinish', animate2);
+
+			ivl_chart.draw(data2, options2);
+
+			// Global variable to count number of times chart has been animated
+			var anim_count2 = 0;
+
+			// Animation function, called after each animation completes
+			function animate2()
+			{
+				// Update Year
+				var year = anim_count2 +1960 + sweden_income_vs_life.length - nonzero;
+				var title_string = year + ' Income per Person (USD) vs. Life Expectancy';
+
+				options2 =
+				{
+					title: title_string,
+					vAxis: {title: 'Income per Person (USD)', maxValue:100000, minValue:0},
+					hAxis: {title: 'Life Expectancy (years)', maxValue:90, minValue:60},
+					animation:{
+						"startup": true,
+						enableInteractivity: false,
+						duration: 1000,
+						easing: 'in',
+					},
+				};
+
+				// Only animate through 2014, then stop
+				if( anim_count2 < nonzero)
+				{
+					// Update data table
+					data2.setValue(0, 1, sweden_income_vs_life[anim_count][0]);
+					data2.setValue(0, 2, sweden_income_vs_life[anim_count][1]);
+					data2.setValue(1, 1, norway_income_vs_life[anim_count][0]);
+					data2.setValue(1, 2, norway_income_vs_life[anim_count][1]);
+					// Increment times animated (i.e., year)
+					anim_count2++;
+					// Re-draw table w/ animation
+					ivl_chart.draw(data2, options2);
+				}
+			}
+			
+		}
+	</script>
+
+</head>
+
+<body>
+
+	<h1> 1.125 - PSet 2 - Fall 2016 </h1>
+
+	<h2> John Tramm - jtramm@mit.edu </h2>
+
+	<h3> Countries: Sweden and Norway </h3>
+
+	<h1> Fertility vs. Life Expectancy in Sweden and Norway</h1>
+	<h2> Animated by year (1960-2014) </h1>
+
+	<div id="anim_swe_fvl" style="width: 700px; height: 400px"></div>
+
+	<h1> Per Capita Income (USD) vs. Life Expectancy </h1>
+	<h2> Animated by year (1971-2014) </h1>
+
+	<div id="income_vs_life" style="width: 700px; height: 400px"></div>
+
+
+</body>
+
+</html>

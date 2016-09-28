@@ -1,0 +1,240 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myArray = [];
+var target1 = [];
+var target2 = [];
+var searchText1;
+var searchText2;
+var reader;
+var focus = 4;
+var header;
+
+function go() {
+
+    chart = new google.visualization.ScatterChart(document.getElementById('chart'));
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+            reader = new FileReader();
+			      reader.readAsText(file); 
+            reader.onload = function(e) {
+     			  reCalculate();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+
+     button = document.getElementById('b1');
+     button.onclick = function() {
+     drawChart(target1, target2);
+    };
+}
+
+function reCalculate(){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    header = myArray[0];
+    target1 = myArray.filter(chooseRow1);  
+    target2 = myArray.filter(chooseRow2);
+    drawChart(target1, target2);
+}
+
+/**
+ * returns the row with searchText1
+ */
+
+function chooseRow1(row){
+	if(row.length<3)return false;
+  else return row[2].includes(searchText1);
+}
+
+/**
+ * returns the row with searchText2
+ */
+
+function chooseRow2(row){
+  if(row.length<3)return false;
+  else return row[2].includes(searchText2);
+}
+
+/**
+ * draws the chart
+ */
+function drawChart(data1, data2) {
+
+  var index1;
+  var index2;
+  var finalArray1 = [];
+  var finalArray2 = [];
+  
+  var outputText = "";
+  
+  //get the max endpoint for x-axis
+  //only picks the index if the value is not undefined or empty
+  for(var i = data1[0].length; i > 4;i--){
+        if ((typeof data1[0][i] !== "undefined") && data1[0][i] !== "" ) {
+            index1  = i;
+            break;
+
+        }
+    }
+
+    //push to finalArray1 to remove undefined and empty values and be able to run max/min functions
+    for(var k = data1[0].length; k >= 4;k--){
+        if ((typeof data1[0][k] !== "undefined") && data1[0][k] !== "" ) {
+            finalArray1.push(data1[0][k]);
+        }
+    }
+
+    //get the max endpoint for y-axis
+    //only picks the index if the value is not undefined or empty
+    for(var j = data2[0].length; j > 4;j--){
+        if ((typeof data2[0][j] !== "undefined") && data2[0][j] !== "") {
+            index2  = j;
+            break;
+        }
+    }
+
+    //push to finalArray1 to remove undefined and empty values and be able to run max/min functions
+    for(var l = data2[0].length; l >= 4;l--){
+        if ((typeof data2[0][l] !== "undefined") && data2[0][l] !== "") {
+            finalArray2.push(data2[0][l]);
+        }
+    }
+
+  //these values will be used to set min and max axis values 
+  //and prevent end values from being at the edge
+  var maxValueIndex1 = Math.max.apply(Math, finalArray1); 
+  var minValueIndex1 = Math.min.apply(Math, finalArray1); 
+  var maxValueIndex2 = Math.max.apply(Math, finalArray2); 
+  var minValueIndex2 = Math.min.apply(Math, finalArray2);
+
+  if ( focus < 61 ) {
+    var drawAt = document.getElementById('chart');
+    var dataSet = [];
+    dataSet.push([target1[0][2],target2[0][2]]);
+  
+    dataSet.push([Number(data1[0][4]),Number(data2[0][4])]);
+   
+   //only pushes the data to dataset array if it is not undefined or empty but a valid number.
+    if ((typeof data1[0][focus] !== "undefined") && (typeof data2[0][focus] !== "undefined") && data1[0][focus] !== "" && data2[0][focus] !== "") {
+      val1 = Number(data1[0][focus]);
+      val2 = Number(data2[0][focus]);
+      dataSet.push([val1,val2]);
+    }
+
+    dataSet.push([Number(data1[0][index1]), val2]);
+  
+    var dataTable = google.visualization.arrayToDataTable(dataSet);
+    google.visualization.events.addListener(chart, 'ready',
+      function() {
+        button.disabled = false;
+        button.value = 'STEP TO NEXT YEAR DATA';
+      });
+  
+   var options = {    title: 'DATA PLOT',
+    series: {
+        0: {type: "scatter"}
+    },
+    crosshair: { trigger: 'both', orientation: 'both' },
+    vAxis: { title: target2[0][2], minValue:minValueIndex2, maxValue:maxValueIndex2+1},
+    hAxis: { title: target1[0][2], minValue:minValueIndex1, maxValue:maxValueIndex2+1},
+    trendlines: {
+        0: {
+        color: 'purple',
+        lineWidth: 10,
+        opacity: 0.5,
+        type: 'exponential',
+        pointShape: 'diamond',
+        degree: 4,
+        showR2: false,
+        pointSize: 20,
+        visibleInLegend: true,
+        }
+    },
+    animation:{
+    duration: 5000,
+    easing: 'out'
+    }   
+  };
+    chart.draw(dataTable, options);
+    outputText += "<p>Data for year : " + header[focus] + "</p>" ;
+    document.getElementById("output").innerHTML = outputText;
+    focus++;
+  } 
+}
+
+function changeSearch(){
+	searchText1 = document.getElementById('search1').value;
+  searchText2 = document.getElementById('search2').value;
+  reCalculate();
+}
+
+/*
+ * reinitializes the variables when RESET button is selected. 
+ */
+function resetData() {
+  searchText1 = null;
+  searchText2 = null;
+  focus = 4;
+  myArray = [];
+  target1 = [];
+  target2 = [];
+  header = null;
+}
+
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1>World Bank Data Explorer - Animated</h1>
+    <div>
+        Select a text file: 
+        <input type="file" id="fileInput">
+    </div>
+    <div> <h3> Select values for X and Y axis: </h3>
+     Select X : 
+      <select id="search1">
+        <option value="GDP" selected="selected">GDP</option>
+        <option value="Life">Life Expectancy</option>
+        <option value="Mortality">Mortality</option>
+        <option value="Fertility">Fertility</option>
+      </select>
+      Select Y : 
+      <select id="search2">
+        <option value="GDP">GDP</option>
+        <option value="Life">Life Expectancy</option>
+        <option value="Mortality">Mortality</option>
+        <option value="Fertility" selected="selected">Fertility</option>
+      </select>
+
+      <input type='button' id ='search' value="PLOT GRAPH" onclick='changeSearch()'>
+      <input type='button' id ='b1' value="STEP" onclick='drawChart()'>
+      <input type='button' id ='reset' value="RESET" onclick='resetData()'>
+
+    </div>
+     <div id="output" style="width: 200px; height: 30px;"></div>
+    <div id="chart" style="width: 1000px; height: 500px;"></div>
+</div>
+</body>
+</html>

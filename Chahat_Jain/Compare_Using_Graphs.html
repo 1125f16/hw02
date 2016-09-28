@@ -1,0 +1,269 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+ <script type="text/javascript">
+
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myString1;
+var myArray = [];
+var target = [];
+var searchText = '';
+var dataTable_animation;
+
+var country_data_1 = [];
+var country_data_2 = [];
+
+var reader;
+var reader1;
+
+function go() {
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+    
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+          reader = new FileReader();
+         reader.readAsText(file); 
+            reader.onload = function(e) {
+
+              if(reader1 == null)
+              {
+              	window.alert("Kindly input both excel files to view charts");
+              	return;
+              } else {
+              	paint_charts();
+              }
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+
+    var fileInput1 = document.getElementById('fileInput1');
+    var fileDisplayArea1 = document.getElementById('fileDisplayArea');
+  
+
+    fileInput1.addEventListener('change', function(e) {
+        var file = fileInput1.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+          reader1 = new FileReader();
+         reader1.readAsText(file); 
+            reader1.onload = function(e) {
+            if(reader == null)
+              {
+              	window.alert("Kindly input both excel files to view charts");
+              	return;
+              }
+            paint_charts();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+
+
+}
+
+function paint_charts()
+{
+
+
+country_compare('NY.GDP.MKTP.CD','SP.DYN.LE00.IN',"GDP (per 10^10)","Life expectancy","1");
+
+myArray = [];
+target = [];
+
+country_compare('SP.POP.TOTL','NY.GNP.PCAP.CD',"Population(per 10^4)","GNI per capital","2");
+
+myArray = [];
+target = [];
+
+country_compare('NY.GDP.MKTP.CD','SP.DYN.LE00.IN',"GDP (per 10^10)","Life expectancy","3");
+
+myArray = [];
+target = [];
+
+country_compare('SP.POP.TOTL','NY.GNP.PCAP.CD',"Population(per 10^4)","GNI per capital","4");
+
+}
+
+
+function country_compare(code1, code2,text1,text2,chart_num) {
+  
+  searchText = code1;
+
+  if (chart_num == "1" || chart_num == "2")
+  reCalculate();
+  else 
+  reCalculate_1();
+    
+  country_data_1 = target;
+
+  searchText = code2;
+  
+  if (chart_num == "1" || chart_num == "2")
+  reCalculate();
+  else 
+  reCalculate_1();
+
+  country_data_2 = target;
+
+  drawChart(myArray[0],country_data_1,country_data_2,text1,text2,chart_num);
+}
+
+function reCalculate(){
+
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    target = myArray.filter(chooseRow);  
+}
+
+function reCalculate_1(){
+  
+    myString1 = reader1.result;
+    myArray = CSVToArray(myString1,',');
+    target = myArray.filter(chooseRow);  
+}
+
+function chooseRow(row){
+  if(row.length<4)return false;
+  else return row[3] == searchText;
+}
+
+function drawChart(header, data_1, data_2, text1, text2,chart_num) {
+
+  var chart_id = 'chart' + chart_num;
+
+  var drawAt = document.getElementById(chart_id);
+  var myArray = [];
+
+  myArray.push([{type: 'date', label: 'Date'},text1,text2]);
+
+  if (data_1[0].length == data_2[0].length) {
+  for(var i = 4;i < data_1[0].length;i++){
+    var d = new Date(parseInt(header[i]),0,0);
+
+    if(chart_num == "1" || chart_num == "3")
+    myArray.push([d,Number(data_1[0][i]/10000000000),Number(data_2[0][i])]);
+    else
+    myArray.push([d,Number(data_1[0][i]/10000),Number(data_2[0][i])]);  
+
+  }
+
+    console.log(JSON.stringify(myArray));
+
+  var dataTable = google.visualization.arrayToDataTable(myArray);
+
+   var chart;
+
+  if(chart_num == "1" || chart_num == "3")
+  chart = new google.visualization.ColumnChart(drawAt);
+  else
+  chart = new google.visualization.LineChart(drawAt);	
+
+
+ var options = {
+       "vAxis": { "minValue": "0"}, 
+       "hAxis": { "slantedTextAngle": "45", "slantedText": "true" }, "legend": { "position": "top" }, 
+       "pointSize": "5",
+        animation: { duration: 3000, easing: 'in', startup: true }
+    };
+
+  /****** ANIMATION (Other)  *************/
+  
+    /* if(chart_num == "1") {
+    var button = document.getElementById('b1');
+    function drawChart() {
+      // Disabling the button while the chart is drawing.
+      button.disabled = true;
+      google.visualization.events.addListener(chart, 'ready',
+          function() {
+            button.disabled = false;
+          });
+      chart.draw(dataTable, options);
+    }
+
+    button.onclick = function() {
+      if (dataTable.getNumberOfRows() > 5) {
+        dataTable.removeRow(Math.floor(Math.random() * dataTable.getNumberOfRows()));
+      }
+      // Generating a random x, y pair and inserting it so rows are sorted.
+      var x = Math.floor(Math.random() * 1000);
+      var y = Math.floor(Math.random() * 100);
+      var where = 0;
+      while (where < dataTable.getNumberOfRows() && parseInt(dataTable.getValue(where, 0)) < x) {
+        where++;
+      }
+      dataTable.insertRows(where, [[x.toString(), y]]);
+      drawChart();
+    }
+
+    drawChart();
+
+} else { */
+ chart.draw(dataTable,options);       
+//}     
+
+} else {
+  return null;
+}
+
+}
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1> Chart Comparisons (Assignment 2 - Chahat Jain) </h1>
+    <div>
+        Select data for Country 1: 
+        <input type="file" id="fileInput">
+    </div>
+    <p></p>
+    <div>
+        Select data for Country 2: 
+        <input type="file" id="fileInput1">
+    </div>
+
+    <h2>Country 1 </h2>
+
+    <h3>GDP vs Life Expectancy (Animation) </h3>
+    <div id="chart1" style="width: 900px; height: 500px;"></div>
+
+    <h3>Population vs GNI per capital</h3>
+    <div id="chart2" style="width: 900px; height: 500px;"></div>
+
+    <p></p>
+
+    <h2>Country 2 </h2>
+
+    <h3>GDP vs Life Expectancy</h3>
+    <div id="chart3" style="width: 900px; height: 500px;"></div>
+
+    <h3>Population vs GNI per capital</h3>
+    <div id="chart4" style="width: 900px; height: 500px;"></div>
+    
+    
+</div>
+</body>
+</html>

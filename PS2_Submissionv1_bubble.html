@@ -1,0 +1,131 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+   <script src="FertilityRate.json"></script>
+  <script src="IncomePerCapita.json"></script>
+  <script src="LifeExpectancy.json"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawSeriesChart);
+    function drawSeriesChart() {
+      // First create an empty array
+      var data_array = [];
+      // Enter names of variables to be added to graph
+      data_array.push(['Country', 'Fertility Rate', 'Life Expectancy','Year']);
+      // Loop over stored data an add to the array
+      var startYear=1970;
+      for (var i = startYear; i <2015; i++) {
+      data_array.push(['K', dataFR[0][i],dataLE[0][i],i]);
+      data_array.push([ 'S.A',dataFR[1][i], dataLE[1][i],i]);
+      }
+      // Convert data array to a DataTable for google charts
+      var data = google.visualization.arrayToDataTable(data_array);
+      // Add some options for pretty plotting
+      var options = {
+        colorAxis: {legend:
+                          {
+                            position:'none'
+                        }
+                  },
+        title: 'Correlation between Life Expectancy and Fertility Rate for Kenya (K) and Saudi Arabia (S.A)',
+        hAxis: {title: 'Fertility Rate'},
+        vAxis: {title: 'Life Expectancy'},
+        bubble: { opacity: 1.0,
+                  textStyle: {
+                                 auraColor: 'none'
+      }
+    }
+       
+      };
+
+      var chart = new google.visualization.BubbleChart(document.getElementById('static_LEvsFR'));
+      chart.draw(data, options);
+     init();
+    }
+//------------------------- Animated Plots (Not Ready Yet)-----------------------------///
+var button;
+    function init() {
+      drawChart(1970);
+    var options = {
+      width: 900,
+      height: 500,
+      animation:{
+        startup: true,
+        duration: 1000,
+        easing: 'out',
+      }
+          };
+
+
+    var chart = new google.visualization.ColumnChart(
+        document.getElementById('dynamic_IPPvsFR'));
+    var button = document.getElementById('b1');
+
+ function drawChart(i) {
+
+      
+      // First create an empty array
+      var data_array2= [];
+      // Enter names of variables to be added to graph
+      data_array2.push(['Country', 'Income Per Person', 'Life Expectancy','Year']);
+      // Loop over stored data an add to the array
+      
+      
+      data_array2.push(['K', dataIPP[0][i],dataLE[0][i],i]);
+      data_array2.push([ 'S.A',dataIPP[1][i], dataLE[1][i],i]);
+
+     
+      // Convert data array to a DataTable for google charts
+       data2 = google.visualization.arrayToDataTable(data_array2);
+      // Add some options for pretty plotting
+      var options2 = {
+        animation:{
+        duration: 100,
+        easing: 'out',
+      },
+        colorAxis: {legend:
+                          {
+                            position:'none'
+                        }
+                  },
+        title: 'Correlation between Life Expectancy and Income Per Person for Kenya (K) and Saudi Arabia (S.A)',
+        hAxis: {title: 'Income Per Person ($USD)',
+                 minValue:0, maxValue:30000},
+        vAxis: {title: 'Life Expectancy',
+                minValue:45, maxValue:80},
+        bubble: { opacity: 1.0,
+                  textStyle: {
+                                 auraColor: 'none'
+                               }   
+                } 
+      };
+    
+
+     var  chart2 = new google.visualization.BubbleChart(document.getElementById('dynamic_IPPvsFR'));
+      chart2.draw(data2, options2);
+      }
+    
+    var startYear=1970;
+    button.onclick = function() {
+       startYear++;
+       var str = 'Year: '+startYear;
+       document.getElementById('year').innerHTML=startYear;
+             if(startYear>2014){startYear=1970;}
+      drawChart(startYear);
+      document.getElementById('year').innerHTML= 'Year: '+startYear;
+      
+
+      
+     
+  };
+}
+
+    </script>
+  </head>
+  <body>
+    <div id="static_LEvsFR" style="width: 1000px; height: 500px;"></div>
+      <div> <input type='button' id ='b1' value="Step">
+  </div><div id='year'></div>
+     <div id="dynamic_IPPvsFR" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>

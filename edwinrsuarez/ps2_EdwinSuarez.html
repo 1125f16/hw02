@@ -1,0 +1,202 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="CVSReader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart','line']});
+      google.charts.setOnLoadCallback(loadData);
+
+      var lineData, bubbleData;
+      var lineArray = Array();
+      var bubbleArray = Array();
+      var current=0;
+       var iteration = 2;
+      var myVar;
+
+      function loadData()
+      {
+        doBubbleData();
+        doLineData();
+      }
+
+      function doLineData()
+      {
+
+      var optionsLine = {
+        title: 'National income for Colombia & Venezuela',
+        vAxis: {title: 'National Income'},
+        hAxis: {title: 'Year'},
+        curveType: 'function'
+      };
+
+      var fileInput = document.getElementById('fileLine');
+      //needs file datasetBubbleChart.CSV located in the same directory
+      fileInput.addEventListener('change', function(e) {
+          var file = fileInput.files[0];
+          var textType1 = /application.*/;
+          var textType2 = /text.*/;
+
+          if (file.type.match(textType1) || file.type.match(textType2)) {
+              reader = new FileReader();
+              reader.readAsText(file); 
+              reader.onload = function(e) {
+                myString = reader.result;
+                lineArray = CSVToArray(myString,',');
+                lineData = new google.visualization.DataTable();
+                lineData.addColumn('string',lineArray[0][0]);
+                lineData.addColumn('number',lineArray[0][1]);
+                lineData.addColumn('number',lineArray[0][2]);
+                for(var i=1;i<=lineArray.length-1;i++) {
+                  lineArray[i][1] = Number(lineArray[i][1]);
+                  lineArray[i][2] = Number(lineArray[i][2]);
+                  lineData.addRow(lineArray[i]);
+                  }
+        var chartLine = new google.visualization.LineChart(document.getElementById('line_chart_div'));
+        chartLine.draw(lineData, optionsLine);
+              };
+                 
+          } else {
+              console.log ("File not supported!");
+          }
+      });     
+}
+
+      function doBubbleData() {
+      
+
+      /*rawData1 =  google.visualization.arrayToDataTable([
+        ['ID', 'Life Expectancy', 'Fertility Rate', 'Population'],
+        ['COL',    80.66,              1.67,        33739900],
+        ['VEN',    79.84,              1.36,               81902307]
+      ]);
+
+      rawData2 =  google.visualization.arrayToDataTable([
+        ['ID', 'Life Expectancy', 'Fertility Rate', 'Population'],
+        ['COL',    100,              3,        4000000],
+        ['VEN',    90,              0,               20000000]
+      ]);
+*/
+    var fileInput = document.getElementById('fileBubble');
+          //needs file datasetLineChart.CSV located in the same directory
+      fileInput.addEventListener('change', function(e) {
+          var file = fileInput.files[0];
+          var textType1 = /application.*/;
+          var textType2 = /text.*/;
+
+          if (file.type.match(textType1) || file.type.match(textType2)) {
+              reader = new FileReader();
+              reader.readAsText(file); 
+              reader.onload = function(e) {
+                myString = reader.result;
+                bubbleArray = CSVToArray(myString,',');
+                bubbleData = new google.visualization.DataTable();
+                bubbleData.addColumn('string',bubbleArray[0][0]);
+                bubbleData.addColumn('number',bubbleArray[0][1]);
+                bubbleData.addColumn('number',bubbleArray[0][2]);
+                bubbleData.addColumn('number',bubbleArray[0][3]);
+                //load first two rows only
+                for(var i = 1;i <= 2;i ++)
+                  {
+                    for(var j=1; j <=3; j++)
+                    {
+                    bubbleArray[i][j] = Number(bubbleArray[i][j]);
+                    }
+                    bubbleData.addRow(bubbleArray[i]);
+                  }  
+              current = 3; // already read the first two records
+              drawBubbleChart();
+              };
+                
+          } else {
+              console.log ("File not supported!");
+          }
+      });      
+      }
+
+    function drawBubbleChart() {   
+
+     var optionsBubble = {
+        title: 'Correlation between life expectancy, fertility rate ' +
+               'and population for Colombia and Venezuela',
+        vAxis: {title: 'Life Expectancy'},
+        hAxis: {title: 'Fertility Rate'},
+        bubble: {textStyle: {fontSize: 11}},
+        animation: {
+          duration: 1000,
+          easing: 'out',
+          //startup: true
+        }
+      };
+
+      var button = document.getElementById('b1');
+      var chart = new google.visualization.BubbleChart(document.getElementById('bubble_chart_div'));
+
+      button.disabled = true;
+      google.visualization.events.addListener(chart,'ready',function() {button.disabled = false;});
+      chart.draw(bubbleData, optionsBubble);
+
+      //button.onclick = function() {
+    }
+       
+       
+    //}
+
+    function refreshChart()
+    {
+    myVar = setInterval(updateDataAnimation, 250);
+    }
+
+    function updateDataAnimation()
+       {
+        var fileDisplayArea = document.getElementById('animit');
+
+       /* if(current + 2 > bubbleArray.length+1) 
+          { current = 1;
+            iteration = 1; }
+       
+           for(var i=1; i < bubbleData.getNumberOfRows();i++) {  //first row is headers
+              for(var j = 1; j < bubbleData.getNumberOfColumns();j++) //first column is static per data
+                { 
+            bubbleData.setValue(i,j,Number(bubbleArray[current][j])); 
+          }}
+          current = current + 2;
+          iteration++;
+          fileDisplayArea.innerText = "Animation iteration #" + iteration;
+          drawBubbleChart();     */
+
+        console.log(current);
+        if(current < bubbleArray.length)
+        {
+           for(var j = 1; j < bubbleData.getNumberOfColumns();j++) //first column is static per data
+                    bubbleArray[current][j] = Number(bubbleArray[current][j]); 
+           bubbleData.addRow(bubbleArray[current]);
+           current++;
+           iteration++;       
+           fileDisplayArea.innerText = "Animation iteration #" + iteration;
+           drawBubbleChart();
+        }
+        else 
+        {
+
+          clearInterval(myVar);
+        }
+     
+      }
+
+
+    </script>
+  </head>
+  <body>
+  <h2>Problem Set #2 - Using Google Charts & CSV Files</h2>
+  <div id="bubbleChart">
+   <div> Prepared file <b>(datasetBubbleChart.CSV)</b> for Bubble Chart <input type="file" id="fileBubble"></div>
+  <div id="bubble_chart_div" style="width: 900px; height: 500px;"></div>
+   <input type='button' id ='b1' value="Animate" onclick="refreshChart()" lick= 'r'><div id="animit"></div>
+</div>
+<br>
+<div id="lineChart">
+ <div> Prepared file <b>(datasetLineChart.CSV)</b> for Line Chart <input type="file" id="fileLine"></div>
+  <div id="line_chart_div" style="width: 900px; height: 500px;"></div>
+</div>
+  </body>
+</html>

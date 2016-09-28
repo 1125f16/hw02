@@ -1,0 +1,344 @@
+<html>
+<head>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+<script>
+var myArray = []; //Global Array for Austria - captures all of Austria data
+var myArray2 = []; //Global Array for Denmark - captures all of Denmark data
+
+var AusArray1 = []; //Austria Fertility vs Life Expectancy data will populate here
+var DenArray1 = []; //Denmark Fertility vs Life Expectancy data will populate here
+
+var AusArray2 = []; //Austria GDP Per Capita vs Life Expectancy data  will populate here
+var DenArray2 = []; //Denmark GDP Per Capita vs Life Expectancy data  will populate here
+
+var options4; // we'll use this for animating chart 4
+var data4;
+var chart4;
+
+window.onload = function() {
+    
+    //code for reading Austria data
+
+    var fileInput = document.getElementById('fileInput');
+    
+
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+    var myString;
+    //var myArray = [];
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /test.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                //fileDisplayArea.innerText = reader.result;
+                myString = reader.result;
+                /**
+                 * choose delimiter and split myString
+                 */
+                myArray = CSVToArray(myString, ',');
+
+                //This is where we setup the Life Expectance (row 1279) and Fertility Rate (row 1281) array for Austria
+                AusArray1 = [["Life Expectance-AUT", "Fertility Rate-AUT"]];
+                //these indices come from the structure of the data where the data starts from col. 4 and continues till col. 58
+                //we push in Austria data
+                for (var i = 4; i <= 58; i++) {
+                AusArray1.push([parseFloat(myArray[1279][i]), parseFloat(myArray[1281][i])]);
+                }
+
+                //This is where we setup the Life Expectance (row 1279) and GDP Per Capita (row 803)array for Austria
+                AusArray2 = [["Life Expectance-AUT","GDP Per Capita-AUT"]];
+                //these indices come from the structure of the data where the data starts from col. 4 and continues till col. 58
+                //we push in Austria data
+                for ( i = 4; i <= 58; i++) {
+                AusArray2.push([parseFloat(myArray[1279][i]), parseFloat(myArray[803][i])]);
+                }
+
+
+
+                //console.log(JSON.stringify(myArray));
+            };
+            reader.readAsText(file);
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+        }
+    });
+
+    //code for reading Denmark data
+
+    var fileInput2 = document.getElementById('fileInput2');
+   
+    var fileDisplayArea2 = document.getElementById('fileDisplayArea');
+    var myString2;
+    //var myArray = [];
+    fileInput2.addEventListener('change', function(e) {
+        var file = fileInput2.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /test.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                //fileDisplayArea.innerText = reader.result;
+                myString2 = reader.result;
+                /**
+                 * choose delimiter and split myString
+                 */
+                myArray2 = CSVToArray(myString2, ',');
+                
+                //This is where we setup the Life Expectance (row 1279) and Fertility Rate (row 1281) array for Denmark
+                DenArray1 = [["Life Expectance-DNK", "Fertility Rate-DNK"]];
+                //these indices come from the structure of the data where the data starts from col. 4 and continues till col. 58
+                //we push in Denmark data
+                for (var l = 4; l <= 58; l++) {
+                   DenArray1.push([parseFloat(myArray2[1279][l]), parseFloat(myArray2[1281][l])]);
+                }
+
+                //This is where we setup the Life Expectance (row 1279) and GDP Per Capita (row 803)array for Austria
+                DenArray2 = [["Life Expectance-DNK","GDP Per Capita-DNK"]];
+                //these indices come from the structure of the data where the data starts from col. 4 and continues till col. 58
+                //we push in Denmark data
+                for ( l = 4; l <= 58; l++) {
+                DenArray2.push([parseFloat(myArray2[1279][l]), parseFloat(myArray2[803][l])]);
+                }
+
+
+                //console.log(JSON.stringify(myArray));
+            };
+            reader.readAsText(file);
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+        }
+
+       
+       
+
+    
+      
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+    
+          function drawChart() {
+            
+            //drawing fertility vs life expectancy for Australia
+            var data = google.visualization.arrayToDataTable(AusArray1);
+            var options = {
+              title: 'Chart 1: Fertility Rate vs. Life Expectancy comparison for Austria',
+              hAxis: {title: 'Life expectancy at birth, total (years)'},
+              vAxis: {title: 'Fertility rate, total (births per woman)'},
+              legend: 'none'
+            };
+
+            var chart = new google.visualization.ScatterChart(document.getElementById('Aus1_chart_div'));
+            chart.draw(data, options);
+
+            //drawing fertility vs life expectancy for Denmark
+            var data2 = google.visualization.arrayToDataTable(DenArray1);
+            var options2 = {
+              title: 'Chart 2: Fertility Rate vs. Life Expectancy comparison for Denmark',
+              hAxis: {title: 'Life expectancy at birth, total (years)'},
+              vAxis: {title: 'Fertility rate, total (births per woman)'},
+              legend: 'none'
+            };
+
+            var chart2 = new google.visualization.ScatterChart(document.getElementById('Den1_chart_div'));
+            chart2.draw(data2, options2);
+
+
+            //drawing GDP per capita vs life expectancy for Austria
+            var data3 = google.visualization.arrayToDataTable(AusArray2);
+            var options3 = {
+              title: 'Chart 3: GDP Per Capita vs. Life Expectancy comparison for Austria',
+              hAxis: {title: 'Life expectancy at birth, total (years)'},
+              vAxis: {title: 'GDP per capita (current US$)'},
+              legend: 'none'
+            };
+
+            var chart3 = new google.visualization.ScatterChart(document.getElementById('Aus2_chart_div'));
+            chart3.draw(data3, options3);
+
+
+            //drawing GDP per capita vs life expectancy for Denmar
+            data4 = google.visualization.arrayToDataTable(DenArray2);
+            options4 = {
+              title: 'Chart 4 [Animated]: GDP Per Capita vs. Life Expectancy comparison for Denmark',
+              hAxis: {title: 'Life expectancy at birth, total (years)'},
+              vAxis: {title: 'GDP per capita (current US$)'},
+              legend: 'none',
+              animation: {
+                duration:200, 
+                easing:'inAndOut',
+              }
+
+            };
+      
+            chart4 = new google.visualization.ScatterChart(document.getElementById('Den2_chart_div'));
+             
+            chart4.draw(data4, options4);
+
+
+           var myVar;
+           var myVar2;
+
+            function myFunction() {
+                myVar = setInterval(repeatFunc, 3000);
+                myVar2 = setInterval(repeatFunc2,3000);
+            }
+
+            function repeatFunc() {
+
+                 data4.addRows([[66,70000]]);
+                 chart4.draw(data4, options4);
+                
+            }
+            function repeatFunc2() {
+
+                 data4.addRows([[77,80000]]);
+                 chart4.draw(data4, options4);
+                
+            }
+
+            myFunction();
+ 
+
+     }
+
+      
+
+
+    });
+
+
+
+
+};
+ function CSVToArray(strData, strDelimiter) {
+     // Check to see if the delimiter is defined. If not,
+     // then default to comma.
+     strDelimiter = (strDelimiter || ",");
+
+     // Create a regular expression to parse the CSV values.
+     var objPattern = new RegExp(
+         (
+             // Delimiters.
+             "(\\" + strDelimiter + "|\\r?\\n|\\r|^)" +
+
+             // Quoted fields.
+             "(?:\"([^\"]*(?:\"\"[^\"]*)*)\"|" +
+
+             // Standard fields.
+             "([^\"\\" + strDelimiter + "\\r\\n]*))"
+         ),
+         "gi"
+     );
+
+
+     // Create an array to hold our data. Give the array
+     // a default empty first row.
+     var arrData = [
+         []
+     ];
+
+     // Create an array to hold our individual pattern
+     // matching groups.
+     var arrMatches = null;
+
+
+     // Keep looping over the regular expression matches
+     // until we can no longer find a match.
+     while (arrMatches = objPattern.exec(strData)) {
+
+         // Get the delimiter that was found.
+         var strMatchedDelimiter = arrMatches[1];
+
+         // Check to see if the given delimiter has a length
+         // (is not the start of string) and if it matches
+         // field delimiter. If id does not, then we know
+         // that this delimiter is a row delimiter.
+         if (
+             strMatchedDelimiter.length &&
+             strMatchedDelimiter !== strDelimiter
+         ) {
+
+             // Since we have reached a new row of data,
+             // add an empty row to our data array.
+             arrData.push([]);
+
+         }
+
+         var strMatchedValue;
+
+         // Now that we have our delimiter out of the way,
+         // let's check to see which kind of value we
+         // captured (quoted or unquoted).
+         if (arrMatches[2]) {
+
+             // We found a quoted value. When we capture
+             // this value, unescape any double quotes.
+             strMatchedValue = arrMatches[2].replace(
+                 new RegExp("\"\"", "g"),
+                 "\""
+             );
+
+         } else {
+
+             // We found a non-quoted value.
+             strMatchedValue = arrMatches[3];
+
+         }
+
+
+         // Now that we have our value string, let's add
+         // it to the data array.
+         arrData[arrData.length - 1].push(strMatchedValue);
+     }
+
+     // Return the parsed data.
+     return (arrData);
+ }
+</script>
+
+
+
+</head>
+<body>
+<div id="page-wrapper">
+
+    <h1>Charts for Austria and Denmark</h1>
+    <h3>Step 1: Please select the two files in the respective file selection text boxes </h3>
+    
+    
+    <div>
+        Select the Austria CSV file (API_AUT prefix): 
+        <input type="file" id="fileInput">
+    </div> 
+
+    <div>
+        Select the Denmark CSV file (API_DNK prefix): 
+        <input type="file" id="fileInput2">
+    </div> 
+
+    <div>
+        <br>Graphs will be loaded automatically once you select the second file. 
+    </div>
+    <pre id="fileDisplayArea"></pre> 
+
+    <div id="Aus1_chart_div" style="width: 900px; height: 500px;"></div>
+
+    <div id="Den1_chart_div" style="width: 900px; height: 500px;"></div>
+
+    <div id="Aus2_chart_div" style="width: 900px; height: 500px;"></div>
+
+    <div id="Den2_chart_div" style="width: 900px; height: 500px;"></div>
+
+
+</div>
+</body>
+</html>

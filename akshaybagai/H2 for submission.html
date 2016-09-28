@@ -1,0 +1,197 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myArray = [];
+var target = [];
+var reader;
+var seriesName;
+var dataTable, index, chart;
+var options = {
+  title: 'Fertility Rate comparison between France and Luxemburg',
+  animation:{
+    duration: 1000,
+    easing: 'linear'
+  },
+  vAxis: {minValue:0, maxValue:3.0, title: 'Fertility rate - total (births per woman)'},
+  hAxis: {minValue:new Date(1960), maxValue: new Date(2015, 0, 1), title:'Year'}
+};
+
+function go() {
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+          reader = new FileReader();
+			   reader.readAsText(file); 
+            reader.onload = function(e) {
+            chartFor('Life expectancy', 'lifeExpectancy', drawChart);
+     		chartFor('Fertility rate', 'fertilityChart', drawAnimatedChart);
+     		plotCorrelationChart('Fertility rate', 'Life expectancy', 'correlationChart', 'Correlation between Fertility Rate & Life expectancy(years)', function(val) { return val;});
+     		plotCorrelationChart('Fertility rate', 'GDP', 'correlationChartGDPAndFertility', 'Correlation between GDP(in Trillion Dollars) & Fertility Rate', function(val) { return val/Number(1000000000000);});
+     		plotCorrelationChart('Life expectancy', 'GDP', 'correlationChartGDPAndLifeExpectancy', 'Correlation between Life expectancy(years) & GDP(in Trillion Dollars)', function(val) { return val/Number(1000000000000);});
+            };
+	               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+}
+
+function plotCorrelationChart(vAxisParameter, hAxisParameter, plotAt, chartTitle, formatXValues) {
+	var options = {
+  		title: chartTitle,
+  		animation:{
+    	duration: 1000,
+    	easing: 'linear'
+  		},
+  		sizeAxis: {maxSize: 5},
+  		vAxis: {title: vAxisParameter},
+  		hAxis: {title: hAxisParameter}
+	};
+
+	var myString = reader.result;
+    var myArray = CSVToArray(myString,',');
+    var dataArray = [];
+
+	var target = myArray.filter(function(row){return row[2].includes(vAxisParameter)});  
+	var target2 = myArray.filter(function(row){return row[2].includes(hAxisParameter)});  
+
+	dataArray.push(['ID', vAxisParameter, hAxisParameter, 'Country']);
+	for(var i = 4; i<target[0].length;i++) {
+		var date = new Date(parseInt(myArray[0][i]),0,0);
+		var lifeExpectancyFrance = Number(target2[0][i]);
+		var fertilityRateFrance =  Number(target[0][i]);
+
+		var lifeExpectancyLuxemburg = Number(target2[1][i]);
+		var fertilityRateLuxemburg =  Number(target[1][i]);
+
+		if (lifeExpectancyFrance !== 0 && fertilityRateFrance !== 0 && lifeExpectancyLuxemburg !== 0 && fertilityRateLuxemburg !==0) {
+	    	dataArray.push([myArray[0][i], formatXValues(lifeExpectancyFrance), fertilityRateFrance, 'France']);
+	    	dataArray.push([myArray[0][i], formatXValues(lifeExpectancyLuxemburg), fertilityRateLuxemburg, 'Luxemburg']);
+		}
+	}
+	var dataTable = google.visualization.arrayToDataTable(dataArray);
+	var chart = new google.visualization.BubbleChart(document.getElementById(plotAt));
+  	chart.draw(dataTable, options);
+}
+
+function chartFor(rowName, divId, draw){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    // [4] to [59] are the dates [2] is item
+	// we need to get data from myArray 
+	seriesName = rowName;
+
+	target = myArray.filter(chooseRow);  
+		        
+    draw(myArray[0], target, divId);
+}
+
+function chooseRow(row){
+	if(row.length<3)return false;
+  else return row[2].includes(seriesName);
+}
+
+function drawChart(header, data, divId) {
+  var options = {
+  title: 'Life expectancy comparison between France and Luxemburg',
+  animation:{
+    duration: 1000,
+    easing: 'linear'
+  },
+  vAxis: {minValue:65, maxValue:85, title: 'Life expectancy at birth - total (years)'},
+  hAxis: {minValue:new Date(1960), maxValue:new Date(2015, 0, 1), title:'Year'}
+};
+
+  var drawAt = document.getElementById(divId);
+  var myArray = [];
+  
+  myArray.push([{type: 'date', label: 'Date'},'FRA', 'LUX']);
+  for(var i = 4;i < data[0].length;i++){
+    var d = new Date(parseInt(header[i]),0,0);
+
+    myArray.push([d,Number(data[0][i]), Number(data[1][i])]);
+  }
+  var dataTable = google.visualization.arrayToDataTable(myArray);
+
+  var chart = new google.visualization.ScatterChart(drawAt);
+  chart.draw(dataTable, options);
+}
+
+function drawAnimatedChart(header, data, divId) {
+  index = 2;
+  myArray = [];
+
+  var drawAt = document.getElementById(divId);
+  chart = new google.visualization.ScatterChart(drawAt);
+  
+  var headerRow = [{type: 'date', label: 'Date'},'FRA', 'LUX'];
+
+  myArray.push(headerRow);
+  for(var i = 4;i < data[0].length;i++){
+    var d = new Date(parseInt(header[i]),0,0);
+    var dataPoint1 = Number(data[0][i]);
+	var dataPoint2 = Number(data[1][i]);
+
+	if(dataPoint1 !==0 && dataPoint2 !== 0) {
+    	var row = [d,dataPoint1, dataPoint2];
+    	myArray.push(row);		
+	}
+  }
+  var a = myArray.slice(0,2);
+  dataTable = google.visualization.arrayToDataTable(a); 
+  setTimeout(addRowAndDraw, 500);
+}
+
+function addRowAndDraw() {
+  dataTable.addRow(myArray[index]);
+  chart.draw(dataTable, options);
+  index++;
+  if(index <= myArray.length) {
+    setTimeout(addRowAndDraw, 250);
+  }
+}
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+	<h1>Akshay Bagai - PS2 - Course 1.125 </h1>
+    <h1>Choose data file</h1>
+    <div>
+        Select a text file: 
+        <input type="file" id="fileInput">
+    </div>
+</div>
+<div>
+    <div id="fertilityChart" style="width: 1200px; height: 700px;"></div>	
+</div>
+<div>
+    <div id="lifeExpectancy" style="width: 1200px; height: 700px;"></div>
+</div>
+<div>
+    <div id="correlationChart" style="width: 1200px; height: 700px;"></div>
+</div>
+<div>
+    <div id="correlationChartGDPAndFertility" style="width: 1200px; height: 700px;"></div>
+</div>
+<div>
+    <div id="correlationChartGDPAndLifeExpectancy" style="width: 1200px; height: 700px;"></div>
+</div>
+</body>
+</html>

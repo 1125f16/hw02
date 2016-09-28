@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Course 1.125 - Problem Set 1</title>
+</head>
+<script type="text/javascript" src="boston.json"></script>
+<script type="text/javascript">
+
+var filterBySalary = function(row) {return Number(row[18]) > 200000;};
+var filterPolice = function(row) {return (row[10].toLowerCase().includes('police') > 0);};
+
+var cityworkers = data.data.filter(filterBySalary).length;
+
+var police = data.data.filter(filterPolice);
+
+var policeSalary = police.filter(filterBySalary).length;
+
+var total = police
+				.map(function(row) {return row[18];})
+				.reduce(function(row1, row2) { return Number(row1) + Number(row2); }, 0);
+</script>
+
+<body>
+
+<h2>Course 1.125 - Problem Set 1</h2>
+<h2>Analyzing employee data from <a href="https://data.cityofboston.gov/Finance/Employee-Earnings-Report-2015/ah28-sywy">Boston City Data</a></h2>
+<h3>Number of rows: <script type="text/javascript">document.write(data.data.length);</script></h3>
+
+<OL>
+	<LI>How many city workers earn above $200,000 total salary ie with overtime? <span style="color: red"><script type="text/javascript">document.write(cityworkers);</script></span></LI>
+	<LI>How many police earn above $200,000 with overtime? <span style="color: red"><script type="text/javascript">document.write(policeSalary);</script></span></LI>
+	<LI>What is the total paid by the city to the police? <span style="color: red">$<script type="text/javascript">document.write(total.toLocaleString(2));</script></span></LI>
+</OL>
+
+</body>
+</html>

@@ -1,0 +1,147 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString1;
+var myString2;
+var myArray1 = [];
+var myArray2 = [];
+var target1 = [];
+var target2 = [];
+var searchText;
+var reader1;
+var reader2;
+var options;
+
+function go() {
+    var fileInput1 = document.getElementById('fileInput1');
+    var fileDisplayArea1 = document.getElementById('fileDisplayArea1');
+
+    var fileInput2 = document.getElementById('fileInput2');
+    var fileDisplayArea2 = document.getElementById('fileDisplayArea2');
+    
+
+    fileInput2.addEventListener('change', function(e) {
+        var file1 = fileInput1.files[0];
+        var file2 = fileInput2.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file2.type.match(textType1) || file2.type.match(textType2)) {
+            reader1 = new FileReader();
+			      reader1.readAsText(file1); 
+            reader2 = new FileReader();
+            reader2.readAsText(file2);
+            reader2.onload = function(e) {
+     			    reCalculate();
+            };
+               
+        } else {
+            fileDisplayArea1.innerText = "File not supported!";
+            return null;
+        }
+    });
+}
+
+function reCalculate(){
+    myString1 = reader1.result;
+    myString2 = reader2.result;
+    myArray1 = CSVToArray(myString1, ',');
+    myArray2 = CSVToArray(myString2, ',');
+    // [4] to [59] are the dates [2] is item1
+	  // we need to get data from myArray 
+	  searchText = document.getElementById('search').value;
+	  target1 = myArray1.filter(chooseRow);  
+    target2 = myArray2.filter(chooseRow);
+    drawChart(myArray1[0], target1, myArray2[0], target2);
+}
+
+function chooseRow(row){
+	if(row.length<2)return false; 
+  else return row[2].includes(searchText);
+}
+
+
+function drawChart(header1, data1, header2, data2) {
+  var drawAt = document.getElementById('chart');
+  var dataSet = [];
+  dataSet.push([{type: 'date', label: 'Date'}, data1[0][0], data2[0][0]]);
+
+  if (data1[0].length < data2[0].length) {
+      len = data2[0].length;
+  } else {
+      len = data1[0].length;
+  }
+
+  for(var i = 4; i < len;i++){
+      if ((typeof data1[0][i] !== "undefined") && (typeof data2[0][i] !== "undefined")) {
+          var d = new Date(parseInt(header1[i]),0,0);
+          dataSet.push([d, Number(data1[0][i]), Number(data2[0][i])]);
+      }
+    }
+
+  var dataTable = google.visualization.arrayToDataTable(dataSet);
+
+  var chart = new google.visualization.ComboChart(drawAt);
+
+  options = {
+    width: 1000,
+    height: 500,
+    vAxis: {
+      title: data2[0][2]
+    },
+    hAxis: {
+      title: "Year"
+    },
+    seriesType: "scatter",
+    series: {
+      5: {
+        type: "scatter"
+      }
+    },
+    animation: {
+      duration: 5000,
+      easing: 'out'
+    },
+  };
+
+  chart.draw(dataTable, options);
+}
+
+function changeSearch(){
+	searchText = document.getElementById('search').value;
+	reCalculate();
+}
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1>World Bank Data Plotter</h1>
+    <div>
+        <h3>Select first text file: 
+        <input type="file" id="fileInput1">
+        Select second text file: 
+        <input type="file" id="fileInput2"></h3>
+    </div>
+    <div> 
+      Select series : 
+      <select id="search">
+        <option value="GDP" selected="selected">GDP</option>
+        <option value="Life">Life Expectancy</option>
+        <option value="Mortality">Mortality</option>
+        <option value="Fertility">Fertility</option>
+      </select>
+       <input type='button' value="PLOT GRAPH" onclick='changeSearch()'>
+    </div>
+    <div id="chart" style="width: 1500px; height: 500px;"></div>
+</div>
+</body>
+</html>

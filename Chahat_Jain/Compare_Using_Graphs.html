@@ -146,7 +146,7 @@ function reCalculate_1(){
 
 function chooseRow(row){
   if(row.length<4)return false;
-  else return row[3].includes(searchText);
+  else return row[3] == searchText;
 }
 
 function drawChart(header, data_1, data_2, text1, text2,chart_num) {

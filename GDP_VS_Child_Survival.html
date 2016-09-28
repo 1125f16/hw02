@@ -1,0 +1,196 @@
+<html>
+<head>
+<style type="text/css">
+.box1 {
+    display: table;
+    width: 50px;
+    height: 30px;
+    background: #EC7063;
+}
+.box1 span {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    color: white;
+    font-family: 'Open Sans', sans-serif
+}
+.box2 {
+    display: table;
+    width: 50px;
+    height: 30px;
+    background: #85C1E9;
+}
+.box2 span {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    color: white;
+    font-family: 'Open Sans', sans-serif
+}
+
+h2 { color: #111; font-family: 'Open Sans', sans-serif; font-size: 30px; font-weight: 300; line-height: 32px; margin: 0 0 72px; text-align: center; }
+  
+</style>
+</head>
+<body>
+    <script src="http://d3js.org/d3.v3.min.js"></script> 
+    <h2>GDP per capita VS Mortality rate (under-5 per 1,000 live births)</h2>
+    <script>
+        var url = "https://raw.githubusercontent.com/alawaji/sample/master/worldbank.csv";
+        d3.csv(url, function (error, rawData) {
+            var data = rawData.map(function (d) { // Read my world bank data and return these variables 
+                return {
+                    CountryCode: d.CountryCode,
+                    CountryName: d.CountryName,
+                    GDP: +d.GDP,
+                    Mortality: +d.Mortality,
+                    Population: +d.Population,
+                    Year: d.Year
+                };
+            });
+
+            var nested = d3.nest().key(function (d) { return d.Year; }) // brining and sorting the data based on the year
+            .sortKeys(d3.ascending)
+            .map(data); 
+
+            var minBubbleSize = 5, maxBubbleSize = 40; // Defining bubble charts sizes and style
+            var margin = {
+                left: maxBubbleSize, top: maxBubbleSize,
+                bottom: maxBubbleSize, right: maxBubbleSize
+            };
+
+            var axisPadding = 5;
+            var graphWidth = 850, graphHeight = 450;
+            var totalWidth = graphWidth + margin.left + margin.right;
+            var totalHeight = graphHeight + margin.top + margin.bottom;
+
+            var GDP_Current = data.map(function (d) { return d.GDP; }); // Return different data elements using map function
+            var Mortality = data.map(function (d) { return d.Mortality; });
+            var population = data.map(function (d) { return d.Population; });
+            var regions = data.map(function (d) { return d.CountryCode; });
+
+            var xScale = d3.scale.linear() // define the scale of the horzintal axis
+                .domain([d3.min(GDP_Current)-1000, d3.max(GDP_Current)])
+                .range([0, graphWidth]);
+
+            var yScale = d3.scale.linear() // define the scale of the vertical axis
+                .domain([d3.max(Mortality)+50, 0])
+                .range([0, graphHeight]);
+
+            var popDomain = [d3.min(population), d3.max(population)]; // set the bubble chart size
+            var popScale = d3.scale.linear()
+                .domain(popDomain)
+                .range([minBubbleSize, maxBubbleSize]);
+
+            var uniqueRegions = d3.set(regions).values(); // Set the bubble chart coloring based on country
+            var regionColorMap = d3.scale.ordinal()
+                .domain(uniqueRegions)
+                .range(d3.scale.category10().range());
+
+            var svg = d3.select('body') // Insert the chart into the HTML page 
+                .append('svg')
+                .attr('width', totalWidth)
+                .attr('height', totalHeight);
+
+            var yAxis = d3.svg.axis().scale(yScale).orient('left'); // Define the size and style of the chart
+            var yAxisNodes = svg.append('g')
+                .attr('transform', 'translate(' + (margin.left - axisPadding) + ',' + margin.top + ')')
+                .call(yAxis);
+            saxis(yAxisNodes);
+            var xAxis = d3.svg.axis().scale(xScale).orient('bottom');
+            var xAxisNodes = svg.append('g')
+                .attr('transform', 'translate(' + margin.left + ',' + (totalHeight - margin.bottom + axisPadding) + ')')
+                .call(xAxis);
+            saxis(xAxisNodes);
+
+            var yearLabel = svg.append('g') // Define the year style and location
+                .append('text')
+                .attr('transform', 'translate(400, 50)')
+                .attr('font-size', '35');
+
+            var bubblesHolder = svg.append("g");
+
+            var interval = 130; // Define the speed of the animation
+
+            function render(year) {
+                var dataForYear = nested[year];
+
+                var bubbles = bubblesHolder
+                    .selectAll("circle")
+                    .data(dataForYear, function (datum) {
+                        return datum.CountryCode;
+                    });
+
+                bubbles.enter()
+                    .append("circle")
+                    .each(setItemAttributes);
+
+                bubbles
+                    .transition()
+                    .duration(interval)
+                    .each(setItemAttributes);
+
+                bubbles.exit().remove();
+
+                yearLabel.text(year);
+
+            };
+
+            function setItemAttributes(d) { // This function creates new circles with different attributes
+                d3.select(this).attr({
+                    cx: xScale(d.GDP),
+                    cy: yScale(d.Mortality),
+                    r: popScale(d.Population),
+                    style: "fill:" + regionColorMap(d.CountryCode) + ";" +
+                        "fill-opacity:0.5;" +
+                        "stroke:" + regionColorMap(d.CountryCode) + ";"
+                });
+            };
+           
+            var minYear = d3.min(data, function (d) { return d.Year; });
+            var maxYear = d3.max(data, function (d) { return d.Year; });
+
+            var currentYear = minYear;
+            render(currentYear);
+
+            var callback = function () {
+                return function () {
+                    currentYear++;
+                    console.log(currentYear);
+                    if (currentYear <= maxYear) {
+                        render(currentYear);
+                        d3.timer(callback(), interval);
+                    }
+                    return true;
+                }
+            }
+
+            d3.timer(callback(), interval);
+
+        });
+
+        function saxis(axisNodes) {
+            axisNodes.selectAll('.domain')
+                .attr({
+                    fill: 'white',
+                    'stroke-width': 1,
+                    stroke: 'black'
+                });
+            axisNodes.selectAll('.tick line')
+                .attr({
+                    fill: 'white',
+                    'stroke-width': 1,
+                    stroke: 'black'
+                });
+        }
+    </script>
+
+    <div class="box1">
+ <span> India </span>
+</div>
+    <div class="box2">
+<span>China</span> 
+</div>
+
+</body>
+</html>

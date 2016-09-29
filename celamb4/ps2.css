@@ -1,0 +1,42 @@
+/* HW2 1.125 Arch & Eng IoT by Charles E. Lambert */
+
+.jumbotron {
+  background-color: white;
+  margin-top: 50px;
+}
+
+#chart_div_1 {
+  height: 600px;
+}
+
+#chart_div_2 {
+  height: 600px;
+}
+
+#chart_div_3 {
+  height: 600px;
+}
+
+#chart_div_4 {
+  height: 600px;
+}
+
+#chart_div_5 {
+  height: 600px;
+}
+
+#chart_div_6 {
+  height: 600px;
+}
+
+#chart_div_7 {
+  height: 600px;
+}
+
+#q2 {
+  background-color: #f1f1f4;
+}
+
+#q4 {
+  background-color: #f1f1f4;
+}

@@ -1,0 +1,230 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myArray = [];
+var target = [];
+var Country1_GDP = [];
+var Country1_LE = [];
+var Country1_POP = [];
+var Country1_CO2 = [];
+var options;
+//var searchText = 'GDP';
+var reader;
+var current;
+function go() {
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+    
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+          reader = new FileReader();
+			   reader.readAsText(file); 
+            reader.onload = function(e) {
+     			//reCalculate();
+          Country1_compare();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+
+options = {
+    width: 900,
+    height: 600,
+    vAxis: {
+      title: "DATA"
+
+    },
+    hAxis: {
+      title: "Years"
+    },
+    seriesType: "bars",
+    series: {
+      5: {
+        type: "line"
+      }
+    },
+    animation: {
+      duration: 50000,
+      easing: 'out'
+
+    },
+  };
+    button = document.getElementById('b1');
+    current = 0;
+
+    //drawChart();
+    button.onclick = function() {
+      current = 1 - current;
+      Country1_compare();
+    };
+
+
+}
+current = 1;
+
+function Country1_compare() {
+  
+  //searchText = document.getElementById('search').value;
+  searchText = 'GDP (current US$)';
+  reCalculate();
+  Country1_GDP = target;
+  searchText = 'Life expectancy at birth, total (years)';
+  reCalculate();
+  Country1_LE = target;
+
+  searchText = 'Population, total';
+  reCalculate();
+  Country1_POP = target;
+
+  searchText = 'CO2 emissions (kt)';
+  reCalculate();
+  Country1_CO2 = target;
+
+  drawChart1(myArray[0],Country1_GDP,Country1_LE);
+  drawChart2(myArray[0],Country1_POP,Country1_CO2);
+
+}
+
+
+//button = document.getElementById('b1');
+//  button.onclick = function() {
+//      Country1_compare();
+// };
+
+function reCalculate(){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    // [4] to [59] are the dates [2] is item
+	// we need to get data from myArray 
+	//searchText = document.getElementById('search').value;
+	target = myArray.filter(chooseRow);  
+		        
+   // drawChart(myArray[0], target);
+}
+function chooseRow(row){
+	if(row.length<3)return false;
+	else return row[2].includes(searchText);
+}
+
+
+function drawChart2(header, data_1, data_2) {
+  var drawAt = document.getElementById('chart2');
+  var myArray = [];
+
+  //myArray.push(["Year", "GDP", "LE"]);
+
+  
+  myArray.push([{type: 'date', label: 'Date'},"Population","CO2"]);
+
+  if (data_1.length == data_2.length) {
+  for(var i = 4;i < data_1[0].length;i++){
+  	var d = new Date(parseInt(header[i]),0,0);
+
+  	myArray.push([d,Number(data_1[0][i])/1000,Number(data_2[0][i])]);
+  }
+   // console.log('charting- '+ data_1[0][3] + ' ' + data_2[0][3]);
+  	console.log(JSON.stringify(myArray));
+  var dataTable = google.visualization.arrayToDataTable(myArray);
+
+  var chart2 = new google.visualization.ComboChart(drawAt);
+  chart2.draw(dataTable, options);
+} else {
+  return null;
+}
+}
+
+
+function drawChart1(header, data_1, data_2) {
+
+  console.log("HEADER..");
+  console.log(header);
+
+  console.log("DATA_1");
+  console.log(data_1);
+
+  console.log("DATA_2");
+  console.log(data_2);
+
+
+  var drawAt = document.getElementById('chart');
+  var myArray = [];
+
+  //myArray.push(["Year", "GDP", "LE"]);
+
+  current == 0 ? myArray.push([{type: 'date', label: 'Date'},"GDP in Billions"]) : myArray.push([{type: 'date', label: 'Date'},"Life Expectancy"]);
+  //myArray.push([{type: 'date', label: 'Date'},"GDP in B$"]);
+  
+
+  if (data_1.length == data_2.length) {
+    for(var i = 4;i < data_1[0].length;i++){
+      var d = new Date(parseInt(header[i]),0,0);
+
+      if (current == 0) {
+           
+          myArray.push([d,Number(data_1[0][i])/1000000000]);
+      } else {
+          //myArray.push([{type: 'date', label: 'Date'},"Life Expectancy"]);
+          myArray.push([d,Number(data_2[0][i])]);
+      }
+      
+    }
+    // console.log('charting- '+ data_1[0][3] + ' ' + data_2[0][3]);
+    //console.log(JSON.stringify(myArray));
+    var dataTable = google.visualization.arrayToDataTable(myArray);
+
+    var chart = new google.visualization.ComboChart(drawAt);
+    var str = data_1[0][0];
+    options.title = str;
+    chart.draw(dataTable, options);
+  } else {
+    return null;
+  }
+}
+
+
+
+  
+
+
+
+/*function changeSearch(){
+	searchText = document.getElementById('search').value;
+	reCalculate();
+}
+*/
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1>Country ? </h1>
+    <div>
+        Select country FILE: 
+        <input type="file" id="fileInput">
+    </div>
+    <div> <input type='button' id ='b1' value="click to switch between GDP and Life Expectancy"></div>
+    <div> <input type='button' id ='b2' value="Scroll down to check Population and CO2 data"></div>
+    
+    <div id="chart" style="width: 2000px; height: 900px;"></div>
+    <div id="chart2" style="width: 900px; height: 500px;"></div>
+    
+    
+</div>
+</body>
+</html>

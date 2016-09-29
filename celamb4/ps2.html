@@ -118,7 +118,7 @@
 
             var expectancyOptions = {
               bubble: {textStyle: {fontSize: 10}},
-              title: 'Q1: Fertility Rate vs Life Expectance',
+              title: 'Q1: Fertility Rate vs Life Expectancy',
               vAxis: {
                 title: 'Fertility rate, total',
                 minValue:0, maxValue:20
@@ -131,7 +131,9 @@
               legend: { position: 'bottom' },
               animation: {
                 easing: 'in',
-                autostart: false
+                autostart: true,
+                duration: 250
+
               }
             };
 
@@ -142,7 +144,7 @@
               backgroundColor: '#f1f1f4',
               vAxis: {
                 title: 'GDP rate growth (annual %)',
-                minValue:-5, maxValue:10
+                minValue:-10, maxValue:15
               },
               hAxis: {
                 title: 'Survival rate to Grade 5 of primary education, both sexes (%)',
@@ -152,7 +154,8 @@
               legend: { position: 'bottom' },
               animation: {
                 easing: 'in',
-                autostart: false
+                autostart: true,
+                duration: 500
               }
             };
 
@@ -170,8 +173,9 @@
               curveType: 'function',
               legend: { position: 'bottom' },
               animation:{
-                startup: false,
-                easing: 'in'
+                startup: true,
+                easing: 'in',
+                duration: 250
               }
             };
 
@@ -183,8 +187,8 @@
               curveType: 'function',
               legend: { position: 'bottom' },
               animation:{
-                startup: false,
-                duration: 1000,
+                startup: true,
+                duration: 500,
                 easing: 'in'
               }
             };

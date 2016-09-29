@@ -1,0 +1,389 @@
+<!-- HW2 1.125 Arch & Eng IoT by Charles E. Lambert -->
+
+<html>
+  <head>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://d3js.org/d3.v4.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <link rel="stylesheet" type="text/css" href="ps2.css">
+    <script type="text/javascript">
+
+      window.onload = function(){
+
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+          d3.csv("data.csv", function(data) {
+
+            function SeriesFinder(seriesName, countryName){
+              for (var i = 0; i < data.length; i++) {
+                if (data[i]['Series Name'].includes(seriesName) && data[i]['Country Name'].includes(countryName)) {
+                  return data[i];
+                };
+              };
+              return false;
+            };
+
+            function createDataArray3(object1, object2, object3){
+              dataArray = [];
+              tmp = [];
+              for (var key1 in object1) {
+                  if (key1.includes('YR')) {
+                    for (var key2 in object2) {
+                      if (key1 == key2){
+                        tmp = [object1['Country Name'], parseFloat(object1[key1]), parseFloat(object2[key2]), parseInt(key1.substring(0,4)), parseFloat(object3[key1])];
+                        dataArray.push(tmp);
+                      };
+                    };
+                  };
+                };
+              return dataArray;
+            };
+
+            function createDataArray(object1, object2){
+              dataArray = [];
+              tmp = [];
+              for (var key1 in object1) {
+                  if (key1.includes('YR')) {
+                    for (var key2 in object2) {
+                      if (key1 == key2){
+                        tmp = [parseInt(key1.substring(0,4)), parseFloat(object1[key1]), parseFloat(object2[key2])];
+                        dataArray.push(tmp);
+                      };
+                    };
+                  };
+                };
+              dataArray.unshift(['Year', 'Mexico', 'Costa Rica']);
+              return dataArray;
+            };
+
+            function createTimeArray(targetArray, dataArray1, dataArray2, fieldsArray){
+              for (var i = 0; i < dataArray.length; i++) {
+                targetArray[i] = new google.visualization.DataTable();
+                targetArray[i].addColumn('string', fieldsArray[0]);
+                targetArray[i].addColumn('number', fieldsArray[1]);
+                targetArray[i].addColumn('number', fieldsArray[2]);
+                targetArray[i].addColumn('number', fieldsArray[3]);
+                targetArray[i].addColumn('number', fieldsArray[4]);
+                targetArray[i].addRow(dataArray1[i]);
+                targetArray[i].addRow(dataArray2[i]);
+              }
+              return targetArray;
+            };
+
+            var expectancyMX = SeriesFinder('Life expectancy at birth, total', 'Mexico');
+            var expectancyCR = SeriesFinder('Life expectancy at birth, total', 'Costa Rica');
+            var fertilityMX = SeriesFinder('Fertility rate, total', 'Mexico');
+            var fertilityCR = SeriesFinder('Fertility rate, total', 'Costa Rica');
+            var gdpMX = SeriesFinder('GDP growth (annual %)', 'Mexico');
+            var gdpCR = SeriesFinder('GDP growth (annual %)', 'Costa Rica');
+            var survivalMX = SeriesFinder('Survival rate to Grade 5 of primary education, both sexes (%)', 'Mexico');
+            var survivalCR = SeriesFinder('Survival rate to Grade 5 of primary education, both sexes (%)', 'Costa Rica');
+            var co2MX = SeriesFinder('CO2 emissions (metric tons per capita)', 'Mexico');
+            var co2CR = SeriesFinder('CO2 emissions (metric tons per capita)', 'Costa Rica');
+            var incomeMX = SeriesFinder('Adjusted net national income per capita (annual % growth)', 'Mexico');
+            var incomeCR = SeriesFinder('Adjusted net national income per capita (annual % growth)', 'Costa Rica');
+            var populationMX = SeriesFinder('Population, total', 'Mexico');
+            var populationCR = SeriesFinder('Population, total', 'Costa Rica');
+
+            var expectancytData = [];
+            expectancyChartDataMX = createDataArray3(expectancyMX, fertilityMX, populationMX);
+            expectancyChartDataCR = createDataArray3(expectancyCR, fertilityCR, populationCR);
+            expectancytData_fields = ['ID', 'Life Expectancy', 'Fertility', 'Year', 'Population']
+            expectancytData = createTimeArray(expectancytData, expectancyChartDataMX, expectancyChartDataCR, expectancytData_fields);
+
+            var incomeData = [];
+            incomeChartDataMX = createDataArray3(expectancyMX, incomeMX, populationMX);
+            incomeChartDataCR = createDataArray3(expectancyCR, incomeCR, populationCR);
+            incomeData_fields = ['ID', 'Life Expectancy', 'Net income', 'Year', 'Population']
+            incomeData = createTimeArray(incomeData, incomeChartDataMX, incomeChartDataCR, incomeData_fields);
+
+            var GDPData = [];
+            CDPChartDataMX = createDataArray3(survivalMX, gdpMX, populationMX);
+            CDPChartDataCR = createDataArray3(survivalCR, gdpCR, populationCR);
+            GDPData_fields = ['ID', 'Survival', 'GDP', 'Year', 'Population']
+            GDPData = createTimeArray(GDPData, CDPChartDataMX, CDPChartDataCR, GDPData_fields);
+
+            var co2Data = [];
+            co2ChartData = createDataArray(co2MX, co2CR);
+            var co2ChartData1 = co2ChartData.slice(0, co2ChartData.length/3);
+            var co2ChartData2 = co2ChartData.slice(0, 2 * (co2ChartData.length/3));
+            var co2ChartData3 = co2ChartData.slice(0, co2ChartData.length);
+            co2Data[0] = google.visualization.arrayToDataTable(co2ChartData1);
+            co2Data[1] = google.visualization.arrayToDataTable(co2ChartData2);
+            co2Data[2] = google.visualization.arrayToDataTable(co2ChartData3);
+
+            var expectancyOptions = {
+              bubble: {textStyle: {fontSize: 10}},
+              title: 'Q1: Fertility Rate vs Life Expectance',
+              vAxis: {
+                title: 'Fertility rate, total',
+                minValue:0, maxValue:20
+              },
+              hAxis: {
+                title: 'Life expectancy at birth, total',
+                minValue:0, maxValue:150
+              },
+              curveType: 'function',
+              legend: { position: 'bottom' },
+              animation: {
+                easing: 'in',
+                autostart: false
+              }
+            };
+
+            var GDPOptions = {
+              bubble: {textStyle: {fontSize: 10}},
+              colorAxis: {colors: ['yellow', 'red']},
+              title: 'Q2: GDP vs Child survival rate',
+              backgroundColor: '#f1f1f4',
+              vAxis: {
+                title: 'GDP rate growth (annual %)',
+                minValue:-5, maxValue:10
+              },
+              hAxis: {
+                title: 'Survival rate to Grade 5 of primary education, both sexes (%)',
+                minValue:0, maxValue:150,
+              },
+              curveType: 'function',
+              legend: { position: 'bottom' },
+              animation: {
+                easing: 'in',
+                autostart: false
+              }
+            };
+
+            var incomeOptions = {
+              bubble: {textStyle: {fontSize: 10}},
+              title: 'Q3: Net Income per capita vs Life Expectancy',
+              vAxis: {
+                title: 'Net income annual % growth',
+                minValue:-15, maxValue:20
+              },
+              hAxis: {
+                title: 'Life expectancy at birth, total',
+                minValue:0, maxValue:150,
+              },
+              curveType: 'function',
+              legend: { position: 'bottom' },
+              animation:{
+                startup: false,
+                easing: 'in'
+              }
+            };
+
+            var co2Options = {
+              title: 'CO2 emissions per country',
+              backgroundColor: '#f1f1f4',
+              vAxis: { title: 'CO2 Metric tons per capita'},
+              hAxis: { title: 'Year'},
+              curveType: 'function',
+              legend: { position: 'bottom' },
+              animation:{
+                startup: false,
+                duration: 1000,
+                easing: 'in'
+              }
+            };
+
+            var chart1 = new google.visualization.BubbleChart(document.getElementById('chart_div_1'));
+            var chart2 = new google.visualization.BubbleChart(document.getElementById('chart_div_3'));
+            var chart3 = new google.visualization.BubbleChart(document.getElementById('chart_div_5'));
+            var chartCO2 = new google.visualization.LineChart(document.getElementById('chart_div_7'));
+
+            var button_1 = document.getElementById('b1');
+            var button_12 = document.getElementById('b12');
+            button_1.disabled = true;
+            button_12.disabled = true;
+            google.visualization.events.addListener(chart1, 'ready',
+                      function() {
+                        button_1.disabled = false;
+                        button_1.value = 'Start';
+                        button_12.disabled = false;
+                        button_12.value = 'Start';
+                      });
+
+            var button_2 = document.getElementById('b2');
+            var button_22 = document.getElementById('b22');
+            button_2.disabled = true;
+            button_22.disabled = true;
+            google.visualization.events.addListener(chart2, 'ready',
+                      function() {
+                        button_2.disabled = false;
+                        button_2.value = 'Start';
+                        button_22.disabled = false;
+                        button_22.value = 'Start';
+                      });
+
+            var button_3 = document.getElementById('b3');
+            var button_32 = document.getElementById('b32');
+            button_3.disabled = true;
+            button_32.disabled = true;
+            google.visualization.events.addListener(chart3, 'ready',
+                      function() {
+                        button_3.disabled = false;
+                        button_3.value = 'Start';
+                        button_32.disabled = false;
+                        button_32.value = 'Start';
+                      });
+
+            var button_4 = document.getElementById('b4');
+            button_4.disabled = true;
+            google.visualization.events.addListener(chartCO2, 'ready',
+                      function() {
+                        button_4.disabled = false;
+                        button_4.value = 'Time step';
+                      });
+
+
+            chartCO2.draw(co2Data[0], co2Options);
+            chart1.draw(expectancytData[0], expectancyOptions);
+            chart2.draw(GDPData[10], GDPOptions);
+            chart3.draw(incomeData[11], incomeOptions);
+
+            counter1 = 1;
+            counter2 = 11;
+            counter3 = 12;
+            var current = 1;
+
+            button_1.onclick = function(){
+              temp1 = setInterval(function (){
+                if (counter1 >= expectancytData.length - 1) {
+                  counter1 = 0;
+                } else {
+                  counter1 ++;
+                };
+                chart1.draw(expectancytData[counter1], expectancyOptions);
+              }, 500);
+            };
+
+            button_12.onclick = function(){
+              clearInterval(temp1);
+            };
+
+            button_2.onclick = function(){
+              temp2 = setInterval(function (){
+                if (counter2 >= GDPData.length - 1) {
+                  counter2 = 10;
+                } else {
+                  counter2 ++;
+                };
+                chart2.draw(GDPData[counter2], GDPOptions);
+              }, 1000);
+            };
+
+            button_22.onclick = function(){
+              clearInterval(temp2);
+            };
+
+            button_3.onclick = function(){
+              temp3 = setInterval(function (){
+                if (counter3 >= incomeData.length - 1) {
+                  counter3 = 11;
+                } else {
+                  counter3 ++;
+                };
+                chart3.draw(incomeData[counter3], incomeOptions);
+              }, 500);
+            };
+
+            button_32.onclick = function(){
+              clearInterval(temp3);
+            };
+
+            button_4.onclick = function() {
+              chartCO2.draw(co2Data[current], co2Options);
+              if (current >= 2) {
+                current = 0;
+              } else {
+                current ++;
+              };
+            };
+          });
+        };
+    };
+    </script>
+  </head>
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top bg-faded">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand name_font" href="#"><span class="glyphicon glyphicon glyphicon-user" aria-hidden="true"></span> Charles E Lambert</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="#intro">PS2</a></li>
+          <li><a href="#q1">Q1</a></li>
+          <li><a href="#q2">Q2</a></li>
+          <li><a href="#q3">Q3</a></li>
+          <li><a href="#q4">Q4</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="jumbotron jumbotron-fluid" id="intro">
+      <div class="row">
+        <div class="col-xs-12">
+          <h1 align="center">PS2 World Bank data analysis</h1>
+          <h3 align="center">Mexico vs Costa Rica</h3>
+        </div>
+      </div>
+    </div>
+    <div class="jumbotron jumbotron-fluid" id="q1">
+      <div class="row">
+        <div class="col-xs-12" id="chart_div_1" class="chart"></div>
+        <div class="col-xs-2 col-xs-offset-5">
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="b1">Start</button>
+              <button type="button" class="btn btn-default" id="b12">Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="jumbotron jumbotron-fluid" id="q2">
+      <div class="row">
+        <div class="col-xs-12" id="chart_div_3" class="chart"></div>
+        <div class="col-xs-2 col-xs-offset-5">
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="b2">Start</button>
+              <button type="button" class="btn btn-default" id="b22">Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="jumbotron jumbotron-fluid" id="q3">
+      <div class="row">
+        <div class="col-xs-12" id="chart_div_5" class="chart"></div>
+        <div class="col-xs-2 col-xs-offset-5">
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="b3">Start</button>
+              <button type="button" class="btn btn-default" id="b32">Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="jumbotron jumbotron-fluid" id="q4">
+      <div class="row">
+        <div class="col-xs-12" id="chart_div_7" class="chart"></div>
+        <div class="col-xs-4 col-xs-offset-4">
+          <div class="btn-group btn-group-justified" role="group" aria-label="...">
+            <div class="btn-group" role="group">
+              <button type="button" class="btn btn-default" id="b4">Time Step</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-xs-12" align="center">&copy; Charles E. Lambert</div>
+    </div>
+  </body>
+</html>

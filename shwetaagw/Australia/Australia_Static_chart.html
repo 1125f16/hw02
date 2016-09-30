@@ -1,0 +1,113 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myArray = [];
+var target1 = [];
+var target2 = [];
+var searchText1 = '';
+var searchText2 = '';
+var reader;
+
+function go() {
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+          reader = new FileReader();
+			   reader.readAsText(file); 
+            reader.onload = function(e) {
+     			reCalculate();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+}
+function reCalculate(){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    // [4] to [59] are the dates [2] is item
+	// we need to get data from myArray 
+
+	searchText1 = document.getElementById('search1').value;
+  searchText2 = document.getElementById('search2').value;
+	
+  target1 = myArray.filter(chooseRow1);  
+  target2 = myArray.filter(chooseRow2);  		        
+    drawChart(myArray[0], target1, target2);
+}
+function chooseRow1(row){
+	if(row.length<3)return false;
+	else return row[2].includes(searchText1);
+}
+
+function chooseRow2(row){
+  if(row.length<3)return false;
+  else return row[2].includes(searchText2);
+}
+
+function drawChart(header, data1, data2) {
+  var drawAt = document.getElementById('chart');
+  var myArray = [];
+  
+  myArray.push([{type: 'date', label: 'Date'},data1[0][2],data2[0][2]]);
+  for(var i = 4;i < data1[0].length;i++){
+  	var d = new Date(parseInt(header[i]),0,0);
+
+  	myArray.push([d,Number(data1[0][i]),Number(data2[0][i])]);
+  }
+
+
+  //  console.log('charting-'+data1[0][3]);
+  //	console.log(JSON.stringify(myArray));
+  
+  var dataTable = google.visualization.arrayToDataTable(myArray);
+
+  var chart = new google.visualization.ColumnChart(drawAt);
+  
+  options = { 
+       animation: {
+      duration: 5000,
+      easing: 'out'
+    }
+  };
+  chart.draw(dataTable);
+}
+
+function changeSearch(){
+searchText1 = document.getElementById('search1').value;
+searchText2 = document.getElementById('search2').value;
+reCalculate();
+}
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h2>Australia: Fertility Rate vs Life expectancy</h2>
+    <div>
+        Select World Bank Data for Australia: 
+        <input type="file" id="fileInput">
+    </div>
+    <div> <h3> search for </h3><input type='text' id='search1' value='Fertility rate' onchange = 'reCalculate()' > </div>
+    <div> <h3> search for </h3><input type='text' id='search2' value='Life expectancy at birth, total' onchange = 'reCalculate()' > </div>
+    <div id="chart" style="width: 1200px; height: 700px;"></div>
+</div>
+</body>
+</html>

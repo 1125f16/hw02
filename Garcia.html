@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script src="papaparse.min.js"></script>
+
+    <script type="text/javascript">
+
+
+
+      google.charts.load('current', { packages: ['corechart']});
+      google.charts.setOnLoadCallback(drawSeriesChart);
+      
+    
+    
+
+    var ARG=[];
+    var CHI=[];
+    var header=['ID','Fertility Rate','Life Expectancy','Country','Population'];
+    var toplot=[];
+    
+    var dataglobal;
+
+    function doStuff(data) {
+      dataglobal=data;
+      toplot[0]=header;
+      ARG[0]='ARG';
+      CHI[0]='CHI';
+      ARG[3]='Argentina';
+      CHI[3]='Chile';
+
+      for (var i = 3; i <dataglobal.length; i++) {
+
+        if(typeof data[i][2]=='string'){
+          ARG[1]=0;
+        }
+        else{
+          ARG[1]=data[i][2];
+        }        
+
+        if(typeof data[i][3]=='string'){
+          ARG[2]=0;
+        }
+        else{
+          ARG[2]=data[i][3];
+        }
+        ARG[4]=data[i][5];
+        CHI[1]=data[i][7];
+        CHI[2]=data[i][8];
+        CHI[4]=data[i][10];
+
+        toplot[1]=ARG;
+        toplot[2]=CHI;
+
+        console.log(CHI[3]);
+        
+        //sleepFor(3000);
+        //drawSeriesChart();
+
+      
+
+      }
+      
+
+      
+
+      
+      
+    }
+
+    
+
+    
+    function sleepFor( sleepDuration ){
+    var now = new Date().getTime();
+    while(new Date().getTime() < now + sleepDuration){ /* do nothing */ } 
+}
+    
+
+    function parseData(url, callBack) {
+        Papa.parse(url, {
+            download: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                callBack(results.data);
+            }
+        });
+    }
+    parseData("ARGCHI.csv",doStuff);
+  
+ 
+
+
+    function drawSeriesChart() {
+
+      var data = google.visualization.arrayToDataTable(toplot);
+
+
+      var options = {
+        title: 'Fertility Rate and Life Expectancy for Chile and Argentina',
+        hAxis: {title: 'Fertility Rate'},
+        vAxis: {title: 'Life Expectancy'},
+        bubble: {textStyle: {fontSize: 11}}
+      };
+      var chart = new google.visualization.BubbleChart(document.getElementById('series_chart_div'));
+      chart.draw(data, options);
+      
+    }
+    </script>
+  </head>
+  <body>
+    <div id="series_chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>

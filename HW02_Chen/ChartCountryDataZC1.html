@@ -1,0 +1,151 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var myArray = [];
+var target = [];
+var searchText1 = 'Life';
+var searchText2 = 'Fertility';
+var searchText3 = 'Zambia';
+var searchText4 = 'Congo';
+var reader;
+
+  var options1 = {
+    title: 'Life Expectancy Vs Fertility Rate of Zambia ',
+    series: {
+        0: {type: "line"}
+    },
+
+   hAxis: {title:"Life Expectancy"},
+   vAxis:{title:"Fertility"},
+
+    
+  
+  animation:{
+    duration: 5000,
+    easing: 'out'
+    }   
+};
+  var options2 = {
+    title: 'Life Expectancy Vs Fertility Rate of Congo',
+    series: {
+        0: {type: "line"}
+    },
+
+   hAxis: {title:"Life Expectancy"},
+   vAxis:{title:"Fertility"},
+
+    
+  
+  animation:{
+    duration: 5000,
+    easing: 'out'
+    }   
+};
+
+function go() {
+
+
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        var textType2 = /text.*/;
+
+        if (file.type.match(textType1) || file.type.match(textType2)) {
+            reader = new FileReader();
+			reader.readAsText(file); 
+            reader.onload = function(e) {
+     			reCalculate();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+}
+function reCalculate(){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    // [4] to [59] are the dates [2] is item
+	// we need to get data from myArray 
+//	searchText = document.getElementById('search').value;
+	target1 = myArray.filter(chooseRow1);  
+    target2 = myArray.filter(chooseRow2); 
+  target3 = myArray.filter(chooseRow3);  
+    target4 = myArray.filter(chooseRow4); 
+		        
+    drawChart(target1,target2,target3,target4);
+   
+}
+function chooseRow1(row){
+	if(row.length<3)return false;
+	else return row[2].includes(searchText1) & row[0].includes(searchText3);
+}
+function chooseRow2(row){
+  if(row.length<3)return false;
+  else return row[2].includes(searchText2) & row[0].includes(searchText3);
+}
+function chooseRow3(row){
+  if(row.length<3)return false;
+  else return row[2].includes(searchText1) & row[0].includes(searchText4);
+}
+function chooseRow4(row){
+  if(row.length<3)return false;
+  else return row[2].includes(searchText2) & row[0].includes(searchText4);
+}
+
+
+
+function drawChart(data1,data2,data3,data4) {
+  var drawAt = document.getElementById('chart');
+  var myArray1 = [];
+  var myArray2 = [];
+  
+  myArray1.push([data1[0][2],data2[0][2]]);
+myArray2.push([data3[0][2],data4[0][2]]);
+
+  for(var i = 4;i < data1[0].length;i++){
+  //	var d = new Date(parseInt(header[i]),0,0);
+
+  	myArray1.push([Number(data1[0][i]),Number(data2[0][i])]);
+    myArray2.push([Number(data3[0][i]),Number(data4[0][i])]);
+  }
+    //console.log(myArray2);
+  //	console.log(JSON.stringify(myArray));
+  var dataTable1 = google.visualization.arrayToDataTable(myArray1);
+var dataTable2 = google.visualization.arrayToDataTable(myArray2);
+  var chart = new google.visualization.LineChart(drawAt);
+
+  chart.draw(dataTable1,options1);
+  chart.draw(dataTable2,options2);
+}
+
+
+
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1>Text File Reader</h1>
+    <div>
+        Select a text file: 
+        <input type="file" id="fileInput">
+    </div>
+    
+    <div id="chart" style="width: 900px; height: 500px;"></div>
+</div>
+</body>
+</html>

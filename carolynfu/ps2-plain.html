@@ -1,0 +1,141 @@
+<html>
+
+<style>
+p {display:inline;}
+</style>
+
+<body>
+<h1> PS2: Graphing world bank data</h1>
+
+<!-- div for dropdown selectors --> 
+<div>
+	<!-- y axis selection -->
+	<p align='inline'><b>Y Axis:</b></p>
+	<select id="yAxis">
+	  <option id=1 value="Fertility Rate">Fertility Rate</option>
+	  <option value="Life Expectancy">Life Expectancy</option>
+	  <option value="GDP per Capita">GDP per Capita</option>
+	  <option value="GNI per Capita">GNI per Capita</option>
+	  <option value="CO2 Emissions">CO2 Emissions</option>
+	  <option value="Mortality Rate">Mortality Rate</option>
+	</select>
+
+	<!-- x asis selection -->
+	<p align='inline'><b>X Axis:</b></p>
+	<select id="xAxis">
+	  <option value="Fertility Rate">Fertility Rate</option>
+	  <option value="Life Expectancy">Life Expectancy</option>
+	  <option value="GDP per Capita">GDP per Capita</option>
+	  <option value="GNI per Capita">GNI per Capita</option>
+	  <option value="CO2 Emissions">CO2 Emissions</option>
+	  <option value="Mortality Rate">Mortality Rate</option>
+	</select>
+
+	<!-- plot selection -->
+	<input type='button' id ='b1' value="Plot" onClick= 'go()'>
+</div>
+
+<!-- div for graphs -->
+<div id="chart" style="width: 1000px; height: 300px;">
+	Chart will be drawn here
+</div>
+
+
+<script src='wbjson.json'></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+// graph initializors
+google.charts.load('current', {
+    packages: ['corechart']
+});
+google.charts.setOnLoadCallback(go);
+var options;
+var button;
+var chart;
+
+// Load data
+wbdata = data;
+// Reference table
+
+
+// Plot graph
+function go() {
+    chart = new google.visualization.ScatterChart(document.getElementById('chart'));
+    
+    button = document.getElementById('b1');
+    button.onclick = function() {
+	        drawChart(wbdata);
+    };
+    drawChart(wbdata);
+}
+
+// draw chart
+function drawChart(wbdata) {
+
+	// Get the user-selected fields
+	var y = document.getElementById('yAxis');
+	var yid = y.selectedIndex;
+	var yfield = y.options[yid].value; // will return "fertility", etc.
+	var x = document.getElementById('xAxis');
+	var xid = x.selectedIndex;
+	var xfield = x.options[xid].value; // will return "fertility", etc.
+
+	// Get Singapore data
+	var dataTable1 = new google.visualization.DataTable();
+	dataTable1.addColumn('number', 'X');
+	dataTable1.addColumn('number', 'Singapore');
+	dataTable1.addColumn({type: 'string', role:'tooltip'});
+	data1 = [];	
+	// var data1=[['X', 'Singapore', 'Year']];
+	for (var i = 2001; i < 2016; i++) {
+		if (!isNaN(wbdata[xid][i]) && !isNaN(wbdata[yid][i])){
+	        data1.push([wbdata[xid][i], wbdata[yid][i], String(i)]);
+	        console.log('bla')
+	    }
+    }
+    dataTable1.addRows(data1);
+
+    // Get Switzerland data, which starts 6 rows down.
+    var dataTable2 = new google.visualization.DataTable();
+	dataTable2.addColumn('number', 'X');
+	dataTable2.addColumn('number', 'Switzerland');
+	dataTable2.addColumn({type: 'string', role:'tooltip'});
+	data2 = [];	
+	for (var i = 2001; i < 2016; i++) {
+		if (!isNaN(wbdata[xid+6][i]) && !isNaN(wbdata[yid+6][i])){
+	        data2.push([wbdata[xid+6][i], wbdata[yid+6][i], String(i)]);
+	    }
+    }
+    dataTable2.addRows(data2);
+
+	// Modify axis names in options
+	options = {
+        series: {0: {type: "scatter", color:'red', dataOpacity:0.8, pointSize:20}, 1: {type: "scatter", color:"blue", pointSize:20}},
+        hAxis: {title: xfield},
+        vAxis: {title: yfield},
+        animation: {duration: 4000, easing: 'out'}
+    };
+
+    // Join data sets
+    var joinedData = google.visualization.data.join(dataTable1, dataTable2, 'full', [[0, 0]], [1,2], [1,2]);
+    // console.log(joinedData)
+
+    // use google to draw chart
+    button.disabled = true;
+    google.visualization.events.addListener(chart, 'ready',
+        function() {
+            button.disabled = false;
+            // button.value = 'Plot';
+        });
+    
+    chart.draw(joinedData, options);
+}
+
+function getRandomNumber() {
+    return Math.floor(Math.random() * 20);
+}
+
+
+</script>
+</body>
+</html>

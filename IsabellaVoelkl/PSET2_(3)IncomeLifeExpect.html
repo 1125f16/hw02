@@ -1,0 +1,90 @@
+<html>
+  <head>
+    <script type="text/javascript"  src="WorldBankData.json"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(step2);
+      var d = data;
+      var options;
+      var year = 1966;
+    
+      var button;
+      var graphData;
+      var chart;
+
+
+    function problem1Table(){
+      var problem1Table = [['Country Code', 'Life Expectancy', 'Urban population growth (annual %)']];
+      var adderPRK = [];
+      var adderZAF = [];
+  
+      for (i=0; i<d.length;i++){
+        if (d[i][ "Series Code"] === "SP.ADO.TFRT" && d[i]["Country Code"] === "PRK"){   
+          adderPRK = [ d[i][ "Country Code"], d[i][year +" [YR" + year+"]"]];
+        }
+        if (d[i][ "Series Code"] === "SP.URB.GROW" && d[i]["Country Code"] === "PRK"){   
+          adderPRK.push(d[i][year +" [YR" + year +"]"]);
+        }
+         if (d[i][ "Series Code"] === "SP.ADO.TFRT" && d[i]["Country Code"] === "ZAF"){   
+          adderZAF = [ d[i][ "Country Code"], d[i][year +" [YR" + year+"]"]];
+        }
+        if (d[i][ "Series Code"] === "SP.URB.GROW" && d[i]["Country Code"] === "ZAF"){   
+          adderZAF.push(d[i][year +" [YR" + year+"]"]);
+        }
+      }
+
+      problem1Table.push(adderPRK);
+      problem1Table.push(adderZAF);
+      console.log(problem1Table);
+      graphData = google.visualization.arrayToDataTable(problem1Table);
+
+    }
+
+    function step2(){
+      
+    
+
+      chart = new google.visualization.BubbleChart(document.getElementById('series_chart_div'));
+      button = document.getElementById('b1');
+      problem1Table();
+      drawSeriesChart();
+      button.onclick = function() {
+        if (year < 2014) year++;
+        else year = 1966;
+        problem1Table();
+        drawSeriesChart();
+      };
+    }
+
+
+    function drawSeriesChart() {
+      // Disabling the button while the chart is drawing.
+      button.disabled = true;
+      options = {
+              title: 'Correlation between life expectancy and Urban population growth (annual %) ' +
+                     'in South Africa (ZAF) and North Korea (PRK) in ' + year,
+              hAxis: {title: 'Life Expectancy'},
+              vAxis: {title: 'Urban population growth (annual %)'},
+              bubble: {textStyle: {fontSize: 11}}
+            };
+
+      google.visualization.events.addListener(chart, 'ready',
+          function() {
+            button.disabled = false;
+            button.value = 'Next Year';
+          });
+
+      chart.draw(graphData, options);
+    }
+    
+
+    </script>
+  </head>
+  <body>
+  <h2> World Bank Data Chart</h2>
+  <div> <input type='button' id ='b1' value="click">
+  </div>
+    <div id="series_chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>

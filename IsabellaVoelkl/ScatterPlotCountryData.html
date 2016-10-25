@@ -1,0 +1,158 @@
+<html>
+<head>
+<script src="https://www.gstatic.com/charts/loader.js">
+</script>
+<script src="CVSReader.js"></script>
+<script>
+/**
+ * Reads World Bank Data for Country
+ * uses keyword search to retrieve rows of data 
+ * each row is an array usually ~60 but can be null
+ * @type {String}
+ */
+google.charts.load('current', {
+  packages: ['corechart'] });
+google.charts.setOnLoadCallback(go);
+
+var myString;
+var target = [];
+var searchText = 'CO2';
+var reader;
+var button; 
+var focus = 4;  // where we are in array
+var header;
+/**
+ * declares how chart is to be drawn
+ * @type {Object}
+ */
+var options = {
+    title: 'data',
+    series: {
+        0: {type: "scatter"}
+    },
+
+    vAxis: {minValue: 0, maxValue: 5},
+    hAxis: {minValue:new Date(1960,0,0),maxValue:new Date(2015,0,0)},
+    trendlines: {
+        0: {
+        color: 'purple',
+        lineWidth: 10,
+        opacity: 0.5,
+        type: 'polynomial',
+        degree: 4,
+        showR2: false,
+        visibleInLegend: true,
+        }
+    },
+    animation:{
+    duration: 5000,
+    easing: 'out'
+    }   
+};
+/**
+ * {called once Google Charts is loaded}
+ * reads file
+ * calls prepareData which calls render
+ */
+function go() {
+/**
+* get the chart
+*/
+	chart = new google.visualization.ScatterChart(document.getElementById('chart'));
+/**
+ * get the file name 
+ * @type {[type]}
+ */
+    var fileInput = document.getElementById('fileInput');
+    var fileDisplayArea = document.getElementById('fileDisplayArea');
+
+    fileInput.addEventListener('change', function(e) {
+        var file = fileInput.files[0];
+        var textType1 = /application.*/;
+        //var textType2 = /text.*/;
+
+        if (file.type.match(textType1)) {
+            reader = new FileReader();
+			reader.readAsText(file); 
+            reader.onload = function(e) {
+     			prepareData();
+            };
+               
+        } else {
+            fileDisplayArea.innerText = "File not supported!";
+            return null;
+        }
+    });
+    button = document.getElementById('b1');
+    button.onclick = function() {
+      render(target);
+    };
+}
+/**
+ * prepares data for render
+ * @param - uses myArray and reader
+ * @return {none}
+ */
+function prepareData(){
+    myString = reader.result;
+    myArray = CSVToArray(myString,',');
+    header = myArray[0];
+    // [4] to [59] are the dates [2] is item
+	// we need to get data from myArray 
+	searchText = document.getElementById('search').value;
+	target = myArray.filter(chooseRow);  
+    render(target);
+}
+function chooseRow(row){
+	if(row.length<3)return false;
+	else return row[2].includes(searchText);
+}
+/**
+ * @param  {array}
+ * @return {none}
+ */
+function render(target){
+	if(focus < 61){
+		var drawAt = document.getElementById('chart');
+		var myArray = []; 
+		myArray.push([{type: 'date', label: 'Date'},header[0]]);
+		 // header
+		var d0 = new Date(1960,0,0);
+		var d = new Date(parseInt(header[focus]),0,0);
+		var d1 = new Date(2015,0,0);
+		myArray.push([d0,Number(target[0][4])]);
+		myArray.push([d,Number(target[0][focus])]);
+		myArray.push([d1,Number(target[0][focus])]);
+		var dataTable = google.visualization.arrayToDataTable(myArray);
+			google.visualization.events.addListener(chart, 'ready',
+		  function() {
+		    button.disabled = false;
+		    button.value = 'Step';
+		  });
+
+		chart.draw(dataTable,options);
+		focus++;
+	}
+}
+function changeSearch(){
+	searchText = document.getElementById('search').value;
+	prepareData();
+}
+
+</script>
+
+</head>
+<body>
+<div id="page-wrapper">
+    <h1>Reads World Bank Data</h1>
+    <div>
+ 		World Bank Data: 
+        <input type="file" id="fileInput">
+    </div>
+    <div> search for <input type='text' id='search' value='CO2' onchange = 'changeSearch()'> <p>
+    <input type='button' id ='b1' value="step" onclick= 'render()'>
+  </div>
+    <div id="chart" style="width: 900px; height: 500px;"></div>
+</div>
+</body>
+</html>
